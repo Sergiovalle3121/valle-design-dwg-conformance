@@ -1,0 +1,13 @@
+{
+  "name": "@valle-design/dwg-conformance",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check-corpus.mjs"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

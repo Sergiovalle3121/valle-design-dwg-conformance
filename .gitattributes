@@ -1,0 +1,3 @@
+*.dwg binary -diff -merge
+*.bin binary -diff -merge
+* text=auto
