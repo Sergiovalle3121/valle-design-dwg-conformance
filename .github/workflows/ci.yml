@@ -1,13 +1,9 @@
 name: Corpus gates
 
-# pull_request is a one-way bootstrap for the known empty main SHA only. It must
-# be removed by the pre-staged lockdown PR before any corpus is admitted.
-# Afterwards pull_request_target loads the workflow and verifier from the
-# protected base commit; the candidate checkout is treated strictly as data.
+# pull_request_target loads the workflow and verifier from the protected base
+# commit. The candidate checkout is treated strictly as data; no package,
+# script, action, hook, or executable from it is ever run.
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
   pull_request_target:
     branches: [main]
     types: [opened, reopened, synchronize]
@@ -24,7 +20,6 @@ concurrency:
 jobs:
   corpus-gates:
     name: corpus-gates
-    if: github.event_name != 'pull_request' || github.event.pull_request.base.sha == '48eaab09c4c0eb93d5149852a979e274b1aaa1d0'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env: {}
