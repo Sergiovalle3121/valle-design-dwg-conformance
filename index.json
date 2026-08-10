@@ -1,6 +1,11 @@
 {
   "$schema": "./index.schema.json",
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "2.0.0",
   "updatedAt": "2026-08-09",
+  "admission": {
+    "ownerReviewer": "@Sergiovalle3121",
+    "secondReviewers": [],
+    "factSnapshots": []
+  },
   "bundles": []
 }

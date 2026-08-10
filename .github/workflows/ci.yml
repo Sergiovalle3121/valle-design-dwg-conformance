@@ -1,8 +1,16 @@
 name: Corpus gates
 
+# pull_request is a one-way bootstrap for the known empty main SHA only. It must
+# be removed by the pre-staged lockdown PR before any corpus is admitted.
+# Afterwards pull_request_target loads the workflow and verifier from the
+# protected base commit; the candidate checkout is treated strictly as data.
 on:
   pull_request:
     branches: [main]
+    types: [opened, reopened, synchronize]
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize]
   push:
     branches: [main]
 
@@ -10,31 +18,68 @@ permissions:
   contents: read
 
 concurrency:
-  group: corpus-ci-${{ github.ref }}
+  group: corpus-ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   corpus-gates:
     name: corpus-gates
+    if: github.event_name != 'pull_request' || github.event.pull_request.base.sha == '48eaab09c4c0eb93d5149852a979e274b1aaa1d0'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env: {}
     steps:
-      - name: Checkout exact tree
+      - name: Checkout trusted verifier by exact base SHA
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.base.sha || github.sha }}
+          path: trusted
           fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout candidate as inert data
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout push baseline
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.before }}
+          path: baseline
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
 
-      - name: Validate manifests, paths, hashes and inventory
-        run: npm run check
+      - name: Exercise trusted adversarial gate tests
+        run: node --test trusted/tests/check-corpus.spec.mjs
 
-      - name: Scan complete history for secrets
+      - name: Validate pull request data with base verifier
+        if: github.event_name == 'pull_request_target'
+        run: node trusted/scripts/check-corpus.mjs --root candidate --baseline trusted
+
+      - name: Validate pushed data and append-only baseline
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: node trusted/scripts/check-corpus.mjs --root candidate --baseline baseline
+
+      - name: Validate initial pushed data
+        if: github.event_name == 'push' && github.event.before == '0000000000000000000000000000000000000000'
+        run: node trusted/scripts/check-corpus.mjs --root candidate
+
+      - name: Scan candidate history for secrets
+        shell: bash
         run: |
           GITLEAKS_VERSION=8.24.3
           curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o /tmp/gitleaks.tgz
           echo "9991e0b2903da4c8f6122b5c3186448b927a5da4deef1fe45271c3793f4ee29c  /tmp/gitleaks.tgz" | sha256sum --check --strict
           tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
-          /tmp/gitleaks detect --source . --redact --no-banner
+          /tmp/gitleaks detect --source candidate --redact --no-banner

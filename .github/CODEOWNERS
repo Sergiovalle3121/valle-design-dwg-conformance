@@ -3,5 +3,13 @@
 /NOTICE @Sergiovalle3121
 /CORPUS_POLICY.md @Sergiovalle3121
 /index.json @Sergiovalle3121
+/index.schema.json @Sergiovalle3121
 /manifest.schema.json @Sergiovalle3121
+/intake.schema.json @Sergiovalle3121
+/oracle.schema.json @Sergiovalle3121
+/validation.schema.json @Sergiovalle3121
+/scripts/ @Sergiovalle3121
+/tests/ @Sergiovalle3121
+/.github/workflows/ @Sergiovalle3121
 /bundles/ @Sergiovalle3121
+/fact-snapshots/ @Sergiovalle3121

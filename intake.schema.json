@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:valle-design:dwg-intake:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "id",
+    "fixtureId",
+    "fixtureSha256",
+    "fixtureByteLength",
+    "submittedAt",
+    "origin",
+    "rights",
+    "privacy",
+    "reviews"
+  ],
+  "properties": {
+    "$schema": { "const": "urn:valle-design:dwg-intake:1.0.0" },
+    "schemaVersion": { "const": "1.0.0" },
+    "id": { "$ref": "#/$defs/id" },
+    "fixtureId": { "$ref": "#/$defs/id" },
+    "fixtureSha256": { "$ref": "#/$defs/sha256" },
+    "fixtureByteLength": { "type": "integer", "minimum": 1, "maximum": 268435456 },
+    "submittedAt": { "type": "string", "format": "date-time" },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "owner", "createdAt", "tool", "toolVersion", "sourceFactIds"],
+      "properties": {
+        "kind": { "enum": ["sergio-original", "donated-original", "licensed-third-party"] },
+        "owner": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "createdAt": { "type": "string", "format": "date" },
+        "tool": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "toolVersion": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "sourceFactIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 512,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/factId" }
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "licenseId",
+        "useAllowed",
+        "modifyAllowed",
+        "redistributionScope",
+        "evidenceObjectId"
+      ],
+      "properties": {
+        "decision": { "const": "approved" },
+        "licenseId": {
+          "enum": [
+            "Valle-Owner-Authorized",
+            "Valle-Donor-Authorized",
+            "0BSD",
+            "Apache-2.0",
+            "BSD-2-Clause",
+            "BSD-3-Clause",
+            "CC-BY-4.0",
+            "CC0-1.0",
+            "ISC",
+            "MIT",
+            "Unlicense"
+          ]
+        },
+        "useAllowed": { "const": true },
+        "modifyAllowed": { "const": true },
+        "redistributionScope": { "const": "private-conformance-only" },
+        "evidenceObjectId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "containsClientData",
+        "containsPersonalData",
+        "containsSecrets",
+        "containsConfidentialData",
+        "evidenceObjectId"
+      ],
+      "properties": {
+        "decision": { "const": "approved" },
+        "containsClientData": { "const": false },
+        "containsPersonalData": { "const": false },
+        "containsSecrets": { "const": false },
+        "containsConfidentialData": { "const": false },
+        "evidenceObjectId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "reviews": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/review" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$" },
+    "factId": { "type": "string", "pattern": "^[A-Z0-9][A-Z0-9._:-]{2,127}$" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "reviewer": {
+      "type": "string",
+      "pattern": "^@[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$"
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer", "role", "decision", "reviewedAt", "evidenceObjectId"],
+      "properties": {
+        "reviewer": { "$ref": "#/$defs/reviewer" },
+        "role": { "enum": ["owner", "second-reviewer"] },
+        "decision": { "const": "approved" },
+        "reviewedAt": { "type": "string", "format": "date-time" },
+        "evidenceObjectId": { "$ref": "#/$defs/id" }
+      }
+    }
+  }
+}

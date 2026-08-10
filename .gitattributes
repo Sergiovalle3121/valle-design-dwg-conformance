@@ -1,3 +1,9 @@
-*.dwg binary -diff -merge
-*.bin binary -diff -merge
 * text=auto
+*.json text eol=lf
+*.md text eol=lf
+*.mjs text eol=lf
+*.yml text eol=lf
+bundles/**/objects/** binary -diff -merge -text
+fact-snapshots/** binary -diff -merge -text
+*.dwg binary -diff -merge -text
+*.bin binary -diff -merge -text
