@@ -5,7 +5,9 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
-    "check": "node scripts/check-corpus.mjs"
+    "check": "node scripts/check-corpus.mjs",
+    "test": "node --test scripts/build-manifest.spec.mjs",
+    "build-manifest": "node scripts/build-manifest.mjs"
   },
   "engines": {
     "node": ">=20.9.0"

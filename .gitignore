@@ -1,5 +1,8 @@
 incoming/
 private-notes/
+# Bundles efímeros del spec del productor. Un repositorio que custodia derechos
+# no puede acabar con basura de tests indistinguible de material admitido.
+bundles/spec-tmp-*/
 *.local
 *.tmp
 *.log
