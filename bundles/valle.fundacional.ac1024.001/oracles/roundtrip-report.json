@@ -1,0 +1,321 @@
+{
+  "$schema": "urn:valle-design:dwg-conformance:roundtrip-report:v1",
+  "validator": "dxf-source-roundtrip",
+  "validatorVersion": "1.0.0",
+  "method": "DWG del bundle re-convertido a DXF con la herramienta registrada y comparado estructuralmente contra el DXF fuente de autoría propia: conteo por tipo de entidad (equivalencia declarada POLYLINE 2D → LWPOLYLINE), capas (banderas frozen/locked, color, linetype) y bloques.",
+  "limitation": "Valida la conversión con la MISMA herramienta que produjo el DWG: es independiente del codec de Valle, pero no de la herramienta. La prueba contra AutoCAD real llegará con bundles donated-original.",
+  "targetVersion": "ACAD2010",
+  "roundtrip": {
+    "tool": {
+      "name": "ODA File Converter",
+      "version": "27.1",
+      "registryRef": "docs/TOOLS.md#oda-file-converter-27.1"
+    },
+    "command": [
+      "ODAFileConverter.exe",
+      "D:/dev/tools/oda/staging/dwg/ACAD2010",
+      "D:/dev/tools/oda/staging/roundtrip/ACAD2010",
+      "ACAD2000",
+      "DXF",
+      "0",
+      "1"
+    ],
+    "audit": true,
+    "startedAt": "2026-08-20T16:10:50.928Z",
+    "finishedAt": "2026-08-20T16:10:51.650Z",
+    "exitCode": 0
+  },
+  "errorFiles": [],
+  "comparisons": {
+    "01-vacio": {
+      "entidades": {},
+      "capas": {},
+      "bloques": {
+        "esperados": [],
+        "leidos": []
+      },
+      "problemas": [],
+      "veredicto": "accepted"
+    },
+    "02-una-linea": {
+      "entidades": {
+        "LINE": {
+          "esperado": 1,
+          "leido": 1
+        }
+      },
+      "capas": {},
+      "bloques": {
+        "esperados": [],
+        "leidos": []
+      },
+      "problemas": [],
+      "veredicto": "accepted"
+    },
+    "03-figuras-basicas": {
+      "entidades": {
+        "ARC": {
+          "esperado": 1,
+          "leido": 1
+        },
+        "CIRCLE": {
+          "esperado": 1,
+          "leido": 1
+        },
+        "LINE": {
+          "esperado": 1,
+          "leido": 1
+        },
+        "POINT": {
+          "esperado": 1,
+          "leido": 1
+        }
+      },
+      "capas": {},
+      "bloques": {
+        "esperados": [],
+        "leidos": []
+      },
+      "problemas": [],
+      "veredicto": "accepted"
+    },
+    "04-capas": {
+      "entidades": {
+        "CIRCLE": {
+          "esperado": 1,
+          "leido": 1
+        },
+        "LINE": {
+          "esperado": 5,
+          "leido": 5
+        }
+      },
+      "capas": {
+        "0": {
+          "esperado": {
+            "flags": 0,
+            "color": 7,
+            "linetype": "CONTINUOUS"
+          },
+          "leido": {
+            "flags": 0,
+            "color": 7,
+            "linetype": "CONTINUOUS"
+          }
+        },
+        "BLOQUEADA": {
+          "esperado": {
+            "flags": 4,
+            "color": 5,
+            "linetype": "CONTINUOUS"
+          },
+          "leido": {
+            "flags": 4,
+            "color": 5,
+            "linetype": "CONTINUOUS"
+          }
+        },
+        "CONGELADA": {
+          "esperado": {
+            "flags": 1,
+            "color": 4,
+            "linetype": "CONTINUOUS"
+          },
+          "leido": {
+            "flags": 1,
+            "color": 4,
+            "linetype": "CONTINUOUS"
+          }
+        },
+        "COTAS": {
+          "esperado": {
+            "flags": 0,
+            "color": 3,
+            "linetype": "CONTINUOUS"
+          },
+          "leido": {
+            "flags": 0,
+            "color": 3,
+            "linetype": "CONTINUOUS"
+          }
+        },
+        "EJES": {
+          "esperado": {
+            "flags": 0,
+            "color": 2,
+            "linetype": "TRAZOS"
+          },
+          "leido": {
+            "flags": 0,
+            "color": 2,
+            "linetype": "TRAZOS"
+          }
+        },
+        "MUROS": {
+          "esperado": {
+            "flags": 0,
+            "color": 1,
+            "linetype": "CONTINUOUS"
+          },
+          "leido": {
+            "flags": 0,
+            "color": 1,
+            "linetype": "CONTINUOUS"
+          }
+        },
+        "TEXTOS": {
+          "esperado": {
+            "flags": 0,
+            "color": 6,
+            "linetype": "CONTINUOUS"
+          },
+          "leido": {
+            "flags": 0,
+            "color": 6,
+            "linetype": "CONTINUOUS"
+          }
+        }
+      },
+      "bloques": {
+        "esperados": [],
+        "leidos": []
+      },
+      "problemas": [],
+      "veredicto": "accepted"
+    },
+    "05-lwpolyline-bulges": {
+      "entidades": {
+        "LWPOLYLINE": {
+          "esperado": 2,
+          "leido": 2
+        }
+      },
+      "capas": {},
+      "bloques": {
+        "esperados": [],
+        "leidos": []
+      },
+      "problemas": [],
+      "veredicto": "accepted"
+    },
+    "06-texto": {
+      "entidades": {
+        "TEXT": {
+          "esperado": 3,
+          "leido": 3
+        }
+      },
+      "capas": {},
+      "bloques": {
+        "esperados": [],
+        "leidos": []
+      },
+      "problemas": [],
+      "veredicto": "accepted"
+    },
+    "07-bloques-insert": {
+      "entidades": {
+        "INSERT": {
+          "esperado": 4,
+          "leido": 4
+        }
+      },
+      "capas": {},
+      "bloques": {
+        "esperados": [],
+        "leidos": []
+      },
+      "problemas": [],
+      "veredicto": "accepted"
+    },
+    "08-plano-mini": {
+      "entidades": {
+        "INSERT": {
+          "esperado": 2,
+          "leido": 2
+        },
+        "LINE": {
+          "esperado": 3,
+          "leido": 3
+        },
+        "LWPOLYLINE": {
+          "esperado": 1,
+          "leido": 1
+        },
+        "TEXT": {
+          "esperado": 2,
+          "leido": 2
+        }
+      },
+      "capas": {
+        "0": {
+          "esperado": {
+            "flags": 0,
+            "color": 7,
+            "linetype": "CONTINUOUS"
+          },
+          "leido": {
+            "flags": 0,
+            "color": 7,
+            "linetype": "CONTINUOUS"
+          }
+        },
+        "EJES": {
+          "esperado": {
+            "flags": 0,
+            "color": 2,
+            "linetype": "TRAZOS"
+          },
+          "leido": {
+            "flags": 0,
+            "color": 2,
+            "linetype": "TRAZOS"
+          }
+        },
+        "MUROS": {
+          "esperado": {
+            "flags": 0,
+            "color": 1,
+            "linetype": "CONTINUOUS"
+          },
+          "leido": {
+            "flags": 0,
+            "color": 1,
+            "linetype": "CONTINUOUS"
+          }
+        },
+        "PUERTAS": {
+          "esperado": {
+            "flags": 0,
+            "color": 4,
+            "linetype": "CONTINUOUS"
+          },
+          "leido": {
+            "flags": 0,
+            "color": 4,
+            "linetype": "CONTINUOUS"
+          }
+        },
+        "TEXTOS": {
+          "esperado": {
+            "flags": 0,
+            "color": 6,
+            "linetype": "CONTINUOUS"
+          },
+          "leido": {
+            "flags": 0,
+            "color": 6,
+            "linetype": "CONTINUOUS"
+          }
+        }
+      },
+      "bloques": {
+        "esperados": [],
+        "leidos": []
+      },
+      "problemas": [],
+      "veredicto": "accepted"
+    }
+  },
+  "result": "accepted"
+}

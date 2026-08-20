@@ -1,6 +1,32 @@
 {
   "$schema": "./index.schema.json",
   "schemaVersion": "1.0.0",
-  "updatedAt": "2026-08-09",
-  "bundles": []
+  "updatedAt": "2026-08-20",
+  "bundles": [
+    {
+      "id": "valle.fundacional.ac1015.001",
+      "manifestPath": "bundles/valle.fundacional.ac1015.001/manifest.json",
+      "manifestSha256": "4616023d1d4d4b44900829e43adc7bde033d30d8e13e0573f3d14ccdbdaafc1d"
+    },
+    {
+      "id": "valle.fundacional.ac1018.001",
+      "manifestPath": "bundles/valle.fundacional.ac1018.001/manifest.json",
+      "manifestSha256": "892bef17ab403cba558866e21a438acc600e3823fcd5944b3cdd74c2a3e1f57c"
+    },
+    {
+      "id": "valle.fundacional.ac1024.001",
+      "manifestPath": "bundles/valle.fundacional.ac1024.001/manifest.json",
+      "manifestSha256": "ea81aeac00e8c9bb68e8e6927d1f05785c9af7a7d65c90800210bcf82cbb479e"
+    },
+    {
+      "id": "valle.fundacional.ac1027.001",
+      "manifestPath": "bundles/valle.fundacional.ac1027.001/manifest.json",
+      "manifestSha256": "f778b65dd17756255fb4769617892629bd52a18663e769c19e9df6fc77d9e6a5"
+    },
+    {
+      "id": "valle.fundacional.ac1032.001",
+      "manifestPath": "bundles/valle.fundacional.ac1032.001/manifest.json",
+      "manifestSha256": "a26f421f435597a7200cc1299798a206eaa987631df4ded2a6f09550cd9cb618"
+    }
+  ]
 }
