@@ -4,6 +4,11 @@
   "updatedAt": "2026-08-20",
   "bundles": [
     {
+      "id": "foundational-entities-ac1015",
+      "manifestPath": "bundles/foundational-entities-ac1015/manifest.json",
+      "manifestSha256": "661a9b426e9535d62736f82d8f92ff04b16527e077e412564266c998e2ae338e"
+    },
+    {
       "id": "valle.fundacional.ac1015.001",
       "manifestPath": "bundles/valle.fundacional.ac1015.001/manifest.json",
       "manifestSha256": "4616023d1d4d4b44900829e43adc7bde033d30d8e13e0573f3d14ccdbdaafc1d"

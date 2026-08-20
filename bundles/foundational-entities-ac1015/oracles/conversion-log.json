@@ -1,0 +1,81 @@
+{
+  "$schema": "urn:valle-design:dwg-conformance:conversion-log:v1",
+  "validator": "oda-file-converter",
+  "validatorVersion": "27.1",
+  "toolRegistryRef": "docs/TOOLS.md#oda-file-converter-27.1",
+  "targetVersion": "ACAD2000",
+  "expectedSignature": "AC1015",
+  "conversion": {
+    "tool": {
+      "name": "ODA File Converter",
+      "version": "27.1",
+      "registryRef": "docs/TOOLS.md#oda-file-converter-27.1"
+    },
+    "command": [
+      "ODAFileConverter.exe",
+      "D:/dev/tools/oda/staging/dxf-entidades",
+      "D:/dev/tools/oda/staging/dwg-entidades/ACAD2000",
+      "ACAD2000",
+      "DWG",
+      "0",
+      "1"
+    ],
+    "audit": true,
+    "startedAt": "2026-08-20T17:41:28.824Z",
+    "finishedAt": "2026-08-20T17:41:29.751Z",
+    "exitCode": 0
+  },
+  "errorFiles": [],
+  "files": [
+    {
+      "name": "09-mtext",
+      "sourceDxfSha256": "06547caf495f72922655545c077793f56458a4cf5e4b93b509d2156735753840",
+      "dwgSha256": "94938dd94fc1d89f203c7eb897904794eb5092251b4fa72b981b48cb32e5e686",
+      "dwgByteLength": 96677,
+      "signature": "AC1015"
+    },
+    {
+      "name": "10-dimension",
+      "sourceDxfSha256": "e53866ff0a413bc8f79d384ccef21c91c0815913fba168776d82bd2be2e59f30",
+      "dwgSha256": "5225ff6d05cb669052811c21a1608d21c685bd46906b07206da8aa23383ac076",
+      "dwgByteLength": 99300,
+      "signature": "AC1015"
+    },
+    {
+      "name": "11-hatch",
+      "sourceDxfSha256": "6dfab5cdb7f2e5bf848d591a737880cdecf9a5b2079f869c55a1ec55e7e98230",
+      "dwgSha256": "270e0bcde07c6460fd5009b0ed9caf689258d024631e6a55977ec12676fc912b",
+      "dwgByteLength": 96658,
+      "signature": "AC1015"
+    },
+    {
+      "name": "12-attrib",
+      "sourceDxfSha256": "0ad310d3c848cf5472cb038568c21123a02aef22dd4c07435516b19ca7d75ac1",
+      "dwgSha256": "43a47513d934faa1c9ead9ad46518f9f2b140ecc34db470d4fb4bfa9e43cd61e",
+      "dwgByteLength": 97341,
+      "signature": "AC1015"
+    },
+    {
+      "name": "13-polyline2d",
+      "sourceDxfSha256": "67fd2e835f89f7476ba4ce24fbd9c3a32320b0390569737be05db7f30b062f9e",
+      "dwgSha256": "9a2b9262d16c6060b15e902877f3f63835c95d59a088a834988295b94512b8f2",
+      "dwgByteLength": 97146,
+      "signature": "AC1015"
+    },
+    {
+      "name": "14-ellipse-spline",
+      "sourceDxfSha256": "942ecd8e00c4560b009c752996387f9e061f2890f6ba8c3c2ada92ef428d71f0",
+      "dwgSha256": "edb5c01ae23aaeed24adf6fa4700706355d4fe803fad37fa5ccb29b85976aba0",
+      "dwgByteLength": 96731,
+      "signature": "AC1015"
+    },
+    {
+      "name": "15-ltype-style",
+      "sourceDxfSha256": "fa6bc9313ecd8005821f08400aa8ca75b5756b6500845a1cd14c36871cad95b0",
+      "dwgSha256": "1566f45b817a903b1678a622f29455df81ea723fecc6c9d6a26b20c7e7a9701d",
+      "dwgByteLength": 97158,
+      "signature": "AC1015"
+    }
+  ],
+  "result": "accepted"
+}
