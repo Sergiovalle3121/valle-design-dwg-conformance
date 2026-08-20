@@ -1,0 +1,88 @@
+{
+  "$schema": "urn:valle-design:dwg-conformance:conversion-log:v1",
+  "validator": "oda-file-converter",
+  "validatorVersion": "27.1",
+  "toolRegistryRef": "docs/TOOLS.md#oda-file-converter-27.1",
+  "targetVersion": "ACAD2004",
+  "expectedSignature": "AC1018",
+  "conversion": {
+    "tool": {
+      "name": "ODA File Converter",
+      "version": "27.1",
+      "registryRef": "docs/TOOLS.md#oda-file-converter-27.1"
+    },
+    "command": [
+      "ODAFileConverter.exe",
+      "D:/dev/tools/oda/staging/dxf",
+      "D:/dev/tools/oda/staging/dwg/ACAD2004",
+      "ACAD2004",
+      "DWG",
+      "0",
+      "1"
+    ],
+    "audit": true,
+    "startedAt": "2026-08-20T16:10:48.870Z",
+    "finishedAt": "2026-08-20T16:10:49.520Z",
+    "exitCode": 0
+  },
+  "errorFiles": [],
+  "files": [
+    {
+      "name": "01-vacio",
+      "sourceDxfSha256": "015f4a3c0ae3acb5c7ae1f01b004e3459933da38d4d4ba4b64eb4328351b0fd2",
+      "dwgSha256": "3b266f8c671c52677bca38dedd2e8e4123976c99ca4f7d5ec4774d9598def4c0",
+      "dwgByteLength": 14985,
+      "signature": "AC1018"
+    },
+    {
+      "name": "02-una-linea",
+      "sourceDxfSha256": "a03877bf1368b0762eee1ad4994e4baa3e11de9bce27b339454d4a0e5d5e40c1",
+      "dwgSha256": "14849b618d1dcf7e1ecf06012edbace76522525ba3b940ff182daae96846c867",
+      "dwgByteLength": 15081,
+      "signature": "AC1018"
+    },
+    {
+      "name": "03-figuras-basicas",
+      "sourceDxfSha256": "36bb10d745859e79cd9b330fbfc73f1b361b47a40ef5ec441a3d8df78af7cfb6",
+      "dwgSha256": "e5730c79fb86c5a7ea90dab59946b61f44c9838418fc13806b45994575f44c6c",
+      "dwgByteLength": 15177,
+      "signature": "AC1018"
+    },
+    {
+      "name": "04-capas",
+      "sourceDxfSha256": "eb3f5e916189230877b227fe4bb0813648f7c2b469e32657797ac8d7df03344b",
+      "dwgSha256": "b9da9878345ee7b9fffbb173eac660f9ba15957336e56e28a4336bc5b1e64d1c",
+      "dwgByteLength": 16229,
+      "signature": "AC1018"
+    },
+    {
+      "name": "05-lwpolyline-bulges",
+      "sourceDxfSha256": "1ef2a12e9f923f15119032a1a78feff6b44dc0db1fbdfc72fdeb864cd05469eb",
+      "dwgSha256": "91bdc8de3e41ca2299ae73c00ea7d7b11ed5408f4cecac1149f06f0b79c92968",
+      "dwgByteLength": 15177,
+      "signature": "AC1018"
+    },
+    {
+      "name": "06-texto",
+      "sourceDxfSha256": "500c15d52b33f6d661b31d8fc4569bade1a48e0ebb89b108bd477b1b4c8992df",
+      "dwgSha256": "fc52679fd3cc6bb2c2a3553894ff7a033d8380d034b3064d587fc2545dcd7064",
+      "dwgByteLength": 15370,
+      "signature": "AC1018"
+    },
+    {
+      "name": "07-bloques-insert",
+      "sourceDxfSha256": "2c53de67a01e60bd993a6d902b553db40d6f8fa34bfba37dfdf29603dd6a8aab",
+      "dwgSha256": "7a3f920b0dc29f6ee54c035354bfdb408fd287c4e882baf3a716bca435664e8b",
+      "dwgByteLength": 15496,
+      "signature": "AC1018"
+    },
+    {
+      "name": "08-plano-mini",
+      "sourceDxfSha256": "9353e3bc3c6b2e2a4d9973d329b1bc92c30758d553e81b8b5e85bd9d328dc6fa",
+      "dwgSha256": "02a8032727177a85a3a928578006e3b7eb05fbbdb5b05e58b3872b524155d3be",
+      "dwgByteLength": 16357,
+      "signature": "AC1018"
+    }
+  ],
+  "result": "accepted"
+}

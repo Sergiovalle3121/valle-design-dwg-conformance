@@ -144,7 +144,6 @@ async function validateBundle(indexEntry) {
     manifest.status !== "allowed" ||
     manifest.rights?.containsClientData !== false ||
     !Array.isArray(manifest.reviews) ||
-    new Set(manifest.reviews).size < 2 ||
     !Array.isArray(manifest.validations) ||
     manifest.validations.length < 2 ||
     !Array.isArray(manifest.sourceFactIds) ||
@@ -161,11 +160,45 @@ async function validateBundle(indexEntry) {
       "AC1027",
       "AC1032",
     ].includes(manifest.dwgVersion) ||
-    !["sergio-original", "donated-original", "licensed-third-party"].includes(
-      manifest.rights?.origin,
-    )
+    ![
+      "sergio-original",
+      "donated-original",
+      "licensed-third-party",
+      "tool-converted-original",
+    ].includes(manifest.rights?.origin)
   ) {
     fail(`bundle manifest is incomplete or not allowed`);
+  }
+  // Enmienda 2026-08-20 de CORPUS_POLICY.md: tool-converted-original admite
+  // un revisor-propietario pero exige que la herramienta esté registrada en
+  // docs/TOOLS.md y referenciada; cualquier otro origen sigue exigiendo dos
+  // revisores humanos distintos.
+  const uniqueReviews = new Set(
+    manifest.reviews.map((handle) =>
+      typeof handle === "string" ? handle.toLowerCase() : handle,
+    ),
+  );
+  if (manifest.rights.origin === "tool-converted-original") {
+    if (uniqueReviews.size < 1) fail(`bundle requires the owner reviewer`);
+    const registryRef = manifest.rights.toolRegistryRef;
+    if (
+      typeof registryRef !== "string" ||
+      !/^docs\/TOOLS\.md#[a-z0-9][a-z0-9.-]{0,127}$/.test(registryRef)
+    ) {
+      fail(`tool-converted-original bundle lacks a valid toolRegistryRef`);
+    }
+    const anchor = registryRef.slice(registryRef.indexOf("#") + 1);
+    let registry;
+    try {
+      registry = await readFile(resolve(root, "docs", "TOOLS.md"), "utf8");
+    } catch {
+      fail(`docs/TOOLS.md is missing but a bundle references it`);
+    }
+    if (!registry.includes(`id="${anchor}"`)) {
+      fail(`toolRegistryRef anchor "${anchor}" is not registered in docs/TOOLS.md`);
+    }
+  } else if (uniqueReviews.size < 2) {
+    fail(`bundle requires two distinct human reviewers`);
   }
   const validators = new Set();
   for (const validation of manifest.validations) {

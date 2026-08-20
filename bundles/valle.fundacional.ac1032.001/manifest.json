@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "valle.fundacional.ac1032.001",
+  "status": "allowed",
+  "dwgVersion": "AC1032",
+  "rights": {
+    "origin": "tool-converted-original",
+    "owner": "Sergio Valle Zárate",
+    "tool": "ODA File Converter",
+    "toolVersion": "27.1 (QT6 vc16 amd64dll)",
+    "outputRights": "Contenido 100% de autoría propia (ocho dibujos fundacionales generados por scripts/generate-foundational-dxf.mjs) transformado a DWG con la herramienta registrada en docs/TOOLS.md. El titular reclama la propiedad del dibujo fuente y de su transformación; la herramienta no publica términos y ese hecho queda archivado tal cual en el registro.",
+    "redistribution": "Sólo dentro de este repositorio privado de conformidad.",
+    "attestationRef": "private-attestation:valle-corpus-fundacional-2026-08-20",
+    "toolRegistryRef": "docs/TOOLS.md#oda-file-converter-27.1",
+    "containsClientData": false
+  },
+  "sourceFactIds": [
+    "VALLE-CORPUS-FUNDACIONAL-2026-08-20",
+    "ODA-FILE-CONVERTER-27.1-MSI"
+  ],
+  "fixtures": [
+    {
+      "id": "01-vacio.dwg",
+      "path": "fixtures/01-vacio.dwg",
+      "sha256": "02910ffd1f78ed3e0003b5cd610be0b7e392591fcb66ce0fa7d3fe97232bf04b",
+      "byteLength": 11321
+    },
+    {
+      "id": "02-una-linea.dwg",
+      "path": "fixtures/02-una-linea.dwg",
+      "sha256": "20ee9f89a7be6e103ed664922e019f3f723a277e1230a9ffce1124e35ed939c9",
+      "byteLength": 11353
+    },
+    {
+      "id": "03-figuras-basicas.dwg",
+      "path": "fixtures/03-figuras-basicas.dwg",
+      "sha256": "5e430ae342e161c89f530ad03b8d0cd9be930327b202334f8426387b194439f4",
+      "byteLength": 11480
+    },
+    {
+      "id": "04-capas.dwg",
+      "path": "fixtures/04-capas.dwg",
+      "sha256": "c5b4fe4bf775de858eafebf72ab021a9b9b21902fe2b536f4d00e2a4d8a78b7a",
+      "byteLength": 11705
+    },
+    {
+      "id": "05-lwpolyline-bulges.dwg",
+      "path": "fixtures/05-lwpolyline-bulges.dwg",
+      "sha256": "c37490b12eb1c81542654cf3a7389ddb23dded6ff055e58b777df56b4c7e2f06",
+      "byteLength": 11385
+    },
+    {
+      "id": "06-texto.dwg",
+      "path": "fixtures/06-texto.dwg",
+      "sha256": "85bfe217ed3ee3dc6111c5584f37622e5e3e045ad3d9632c1e604045209b5b2b",
+      "byteLength": 11608
+    },
+    {
+      "id": "07-bloques-insert.dwg",
+      "path": "fixtures/07-bloques-insert.dwg",
+      "sha256": "9dd6d810fda049f650770082a8f5587d79a1a66b00afe2b582c76f0acd383969",
+      "byteLength": 11704
+    },
+    {
+      "id": "08-plano-mini.dwg",
+      "path": "fixtures/08-plano-mini.dwg",
+      "sha256": "13f815fcc40cba1659b635bd1a21d5db6a3edbe6ba6dbe163048cb1e0555dddd",
+      "byteLength": 11960
+    }
+  ],
+  "oracles": [
+    {
+      "id": "conversion-log.json",
+      "path": "oracles/conversion-log.json",
+      "sha256": "8782d1bc7e4780e335e260d1413afd738a3e80386b026f9b0d3a5ea66c5ffeb6",
+      "byteLength": 3065
+    },
+    {
+      "id": "dxf-01-vacio.dxf",
+      "path": "oracles/dxf/01-vacio.dxf",
+      "sha256": "015f4a3c0ae3acb5c7ae1f01b004e3459933da38d4d4ba4b64eb4328351b0fd2",
+      "byteLength": 84
+    },
+    {
+      "id": "dxf-02-una-linea.dxf",
+      "path": "oracles/dxf/02-una-linea.dxf",
+      "sha256": "a03877bf1368b0762eee1ad4994e4baa3e11de9bce27b339454d4a0e5d5e40c1",
+      "byteLength": 140
+    },
+    {
+      "id": "dxf-03-figuras-basicas.dxf",
+      "path": "oracles/dxf/03-figuras-basicas.dxf",
+      "sha256": "36bb10d745859e79cd9b330fbfc73f1b361b47a40ef5ec441a3d8df78af7cfb6",
+      "byteLength": 277
+    },
+    {
+      "id": "dxf-04-capas.dxf",
+      "path": "oracles/dxf/04-capas.dxf",
+      "sha256": "eb3f5e916189230877b227fe4bb0813648f7c2b469e32657797ac8d7df03344b",
+      "byteLength": 933
+    },
+    {
+      "id": "dxf-05-lwpolyline-bulges.dxf",
+      "path": "oracles/dxf/05-lwpolyline-bulges.dxf",
+      "sha256": "1ef2a12e9f923f15119032a1a78feff6b44dc0db1fbdfc72fdeb864cd05469eb",
+      "byteLength": 429
+    },
+    {
+      "id": "dxf-06-texto.dxf",
+      "path": "oracles/dxf/06-texto.dxf",
+      "sha256": "500c15d52b33f6d661b31d8fc4569bade1a48e0ebb89b108bd477b1b4c8992df",
+      "byteLength": 547
+    },
+    {
+      "id": "dxf-07-bloques-insert.dxf",
+      "path": "oracles/dxf/07-bloques-insert.dxf",
+      "sha256": "2c53de67a01e60bd993a6d902b553db40d6f8fa34bfba37dfdf29603dd6a8aab",
+      "byteLength": 677
+    },
+    {
+      "id": "dxf-08-plano-mini.dxf",
+      "path": "oracles/dxf/08-plano-mini.dxf",
+      "sha256": "9353e3bc3c6b2e2a4d9973d329b1bc92c30758d553e81b8b5e85bd9d328dc6fa",
+      "byteLength": 1336
+    },
+    {
+      "id": "roundtrip-report.json",
+      "path": "oracles/roundtrip-report.json",
+      "sha256": "1fc71241934cef36735940e73513a603f8a112d06c7240488895a6c7eac7cc4b",
+      "byteLength": 7189
+    }
+  ],
+  "validations": [
+    {
+      "validator": "oda-file-converter",
+      "version": "27.1",
+      "result": "accepted",
+      "evidenceSha256": "8782d1bc7e4780e335e260d1413afd738a3e80386b026f9b0d3a5ea66c5ffeb6"
+    },
+    {
+      "validator": "dxf-source-roundtrip",
+      "version": "1.0.0",
+      "result": "accepted",
+      "evidenceSha256": "1fc71241934cef36735940e73513a603f8a112d06c7240488895a6c7eac7cc4b"
+    }
+  ],
+  "reviews": [
+    "@sergiovalle3121"
+  ]
+}

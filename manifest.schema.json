@@ -50,7 +50,8 @@
           "enum": [
             "sergio-original",
             "donated-original",
-            "licensed-third-party"
+            "licensed-third-party",
+            "tool-converted-original"
           ]
         },
         "owner": { "type": "string", "minLength": 1, "maxLength": 256 },
@@ -65,6 +66,10 @@
         "attestationRef": {
           "type": "string",
           "pattern": "^private-attestation:[A-Za-z0-9._:-]{1,128}$"
+        },
+        "toolRegistryRef": {
+          "type": "string",
+          "pattern": "^docs/TOOLS\\.md#[a-z0-9][a-z0-9.-]{0,127}$"
         },
         "containsClientData": { "const": false }
       }
@@ -94,11 +99,35 @@
     },
     "reviews": {
       "type": "array",
-      "minItems": 2,
+      "minItems": 1,
       "uniqueItems": true,
       "items": { "type": "string", "pattern": "^@[A-Za-z0-9-]{1,39}$" }
     }
   },
+  "allOf": [
+    {
+      "$comment": "Enmienda 2026-08-20 de CORPUS_POLICY.md: tool-converted-original admite un revisor-propietario pero exige el registro de la herramienta; cualquier otro origen sigue exigiendo dos revisores humanos.",
+      "if": {
+        "properties": {
+          "rights": {
+            "properties": {
+              "origin": { "const": "tool-converted-original" }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "rights": { "required": ["toolRegistryRef"] }
+        }
+      },
+      "else": {
+        "properties": {
+          "reviews": { "minItems": 2 }
+        }
+      }
+    }
+  ],
   "$defs": {
     "artifacts": {
       "type": "array",

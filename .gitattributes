@@ -1,3 +1,7 @@
 *.dwg binary -diff -merge
 *.bin binary -diff -merge
 * text=auto
+# Los artefactos de un bundle son BYTES congelados: su SHA-256 vive en el
+# manifiesto y en el índice. Ninguna normalización de fin de línea puede
+# tocarlos, o el hash del working tree dejaría de coincidir con el del blob.
+bundles/** -text

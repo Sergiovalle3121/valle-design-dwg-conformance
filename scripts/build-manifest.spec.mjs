@@ -219,6 +219,86 @@ for (const caso of rechazos) {
   });
 }
 
+// --- Enmienda 2026-08-20: origen tool-converted-original ---------------------
+
+const toToolConverted = (d) => {
+  d.rights.origin = "tool-converted-original";
+  d.rights.tool = "ODA File Converter";
+  d.rights.toolVersion = "27.1";
+  d.rights.toolRegistryRef = "docs/TOOLS.md#oda-file-converter-27.1";
+  d.reviews = ["@sergiovalle3121"];
+};
+
+test("enmienda — tool-converted-original con revisor-propietario y herramienta registrada produce manifiesto", async () => {
+  const { id, cleanup } = await withBundle(toToolConverted);
+  try {
+    const result = await build(id);
+    assert.equal(result.ok, true, result.stderr);
+    const manifest = JSON.parse(result.stdout.slice(0, result.stdout.indexOf("\n---")));
+    assert.equal(manifest.rights.origin, "tool-converted-original");
+    assert.equal(manifest.rights.toolRegistryRef, "docs/TOOLS.md#oda-file-converter-27.1");
+    assert.deepEqual(manifest.reviews, ["@sergiovalle3121"]);
+    assert.equal(manifest.validations.length, 2);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("enmienda — tool-converted-original sin registro de herramienta se rechaza", async () => {
+  const { id, cleanup } = await withBundle((d) => {
+    toToolConverted(d);
+    delete d.rights.toolRegistryRef;
+  });
+  try {
+    const result = await build(id);
+    assert.equal(result.ok, false);
+    assert.match(result.stderr, /toolRegistryRef/);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("enmienda — una herramienta no registrada en docs/TOOLS.md se rechaza", async () => {
+  const { id, cleanup } = await withBundle((d) => {
+    toToolConverted(d);
+    d.rights.toolRegistryRef = "docs/TOOLS.md#herramienta-fantasma-9.9";
+  });
+  try {
+    const result = await build(id);
+    assert.equal(result.ok, false);
+    assert.match(result.stderr, /no está registrada en docs\/TOOLS\.md/);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("enmienda — tool-converted-original sin ningún revisor se rechaza", async () => {
+  const { id, cleanup } = await withBundle((d) => {
+    toToolConverted(d);
+    d.reviews = [];
+  });
+  try {
+    const result = await build(id);
+    assert.equal(result.ok, false);
+    assert.match(result.stderr, /revisor-propietario/);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("enmienda — toolRegistryRef fuera de tool-converted-original se rechaza", async () => {
+  const { id, cleanup } = await withBundle((d) => {
+    d.rights.toolRegistryRef = "docs/TOOLS.md#oda-file-converter-27.1";
+  });
+  try {
+    const result = await build(id);
+    assert.equal(result.ok, false);
+    assert.match(result.stderr, /sólo aplica al origen tool-converted-original/);
+  } finally {
+    await cleanup();
+  }
+});
+
 test("sin declaración fuera de Git no se produce nada, y el mensaje dice dónde va", async () => {
   const { id, cleanup } = await withBundle();
   try {
