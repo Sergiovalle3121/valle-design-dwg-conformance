@@ -36,5 +36,15 @@ Identificadores usados en `sourceFactIds` de los manifiestos:
   ocho dibujos escalonados de autoría propia generados por
   `scripts/generate-foundational-dxf.mjs` y convertidos con la herramienta
   de este registro mediante `scripts/build-foundational-corpus.mjs`.
+- `VALLE-CORPUS-ENTIDADES-2026-08-20` — intake de la ola de entidades:
+  siete dibujos escalonados 09–15 de autoría propia (MTEXT, DIMENSION con
+  DIMSTYLE propio, HATCH, ATTDEF/ATTRIB, POLYLINE 2D/3D pesada, ELLIPSE,
+  SPLINE, LTYPE y STYLE propios) generados por
+  `scripts/generate-entity-dxf.mjs` en dialecto DXF 2000 y convertidos
+  SOLO a ACAD2000 con la herramienta de este registro mediante
+  `scripts/build-entity-corpus.mjs`. Hecho observado 2026-08-20: el lector
+  R12 de la herramienta reconoce el nombre MTEXT pero descarta sus grupos,
+  por lo que esta ola exige el dialecto 2000 con esqueleto de tablas y
+  handles.
 - `ODA-FILE-CONVERTER-27.1-MSI` — el instalador descrito arriba, con su
   SHA-256 y su estado de términos observado.
