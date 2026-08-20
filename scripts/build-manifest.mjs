@@ -42,7 +42,13 @@ const DWG_VERSIONS = [
   "AC1027",
   "AC1032",
 ];
-const ORIGINS = ["sergio-original", "donated-original", "licensed-third-party"];
+const ORIGINS = [
+  "sergio-original",
+  "donated-original",
+  "licensed-third-party",
+  "tool-converted-original",
+];
+const TOOL_REGISTRY_REF = /^docs\/TOOLS\.md#[a-z0-9][a-z0-9.-]{0,127}$/;
 const MAX_ARTIFACT_BYTES = 536870912;
 
 // Fallo cerrado: ante cualquier ambigüedad se aborta con un error tipado. Un
@@ -160,7 +166,7 @@ function requireString(value, label, pattern) {
   return value;
 }
 
-function validateRights(rights) {
+async function validateRights(rights) {
   if (!rights || typeof rights !== "object") {
     fail("la declaración no trae el bloque `rights`");
   }
@@ -175,6 +181,31 @@ function validateRights(rights) {
       "rights.containsClientData debe ser el literal `false`, declarado tras la revisión humana",
     );
   }
+  // Enmienda 2026-08-20: el origen tool-converted-original exige que la
+  // herramienta esté REGISTRADA (docs/TOOLS.md) y referenciada. Sin registro
+  // no hay hechos que auditar, y sin hechos no hay derechos que declarar.
+  let toolRegistryRef;
+  if (rights.origin === "tool-converted-original") {
+    toolRegistryRef = requireString(
+      rights.toolRegistryRef,
+      "rights.toolRegistryRef (obligatorio para tool-converted-original)",
+      TOOL_REGISTRY_REF,
+    );
+    const anchor = toolRegistryRef.slice(toolRegistryRef.indexOf("#") + 1);
+    let registry;
+    try {
+      registry = await readFile(resolve(root, "docs", "TOOLS.md"), "utf8");
+    } catch {
+      fail("docs/TOOLS.md no existe: registra la herramienta antes de declarar el bundle");
+    }
+    if (!registry.includes(`id="${anchor}"`)) {
+      fail(
+        `la herramienta "${anchor}" no está registrada en docs/TOOLS.md; el registro va ANTES que el bundle`,
+      );
+    }
+  } else if (rights.toolRegistryRef !== undefined) {
+    fail("rights.toolRegistryRef sólo aplica al origen tool-converted-original");
+  }
   return {
     origin: rights.origin,
     owner: requireString(rights.owner, "rights.owner"),
@@ -187,6 +218,7 @@ function validateRights(rights) {
       "rights.attestationRef",
       ATTESTATION,
     ),
+    ...(toolRegistryRef === undefined ? {} : { toolRegistryRef }),
     containsClientData: false,
   };
 }
@@ -225,10 +257,16 @@ function validateValidations(validations) {
   }));
 }
 
-function validateReviews(reviews) {
-  if (!Array.isArray(reviews) || reviews.length < 2) {
+function validateReviews(reviews, origin) {
+  // Enmienda 2026-08-20: tool-converted-original admite UN revisor (el
+  // propietario) porque lo respaldan dos validaciones automáticas
+  // independientes; cualquier otro origen sigue exigiendo dos humanos.
+  const minimum = origin === "tool-converted-original" ? 1 : 2;
+  if (!Array.isArray(reviews) || reviews.length < minimum) {
     fail(
-      "la declaración necesita al menos DOS revisores humanos: el titular y el segundo revisor que firma derechos",
+      minimum === 1
+        ? "la declaración necesita al menos el revisor-propietario"
+        : "la declaración necesita al menos DOS revisores humanos: el titular y el segundo revisor que firma derechos",
     );
   }
   const unique = new Set();
@@ -322,12 +360,12 @@ async function main() {
     id: options.bundle,
     status: "allowed",
     dwgVersion: declaration.dwgVersion,
-    rights: validateRights(declaration.rights),
+    rights: await validateRights(declaration.rights),
     sourceFactIds: [...sourceFactIds],
     fixtures: await collectArtifacts(bundleRoot, "fixtures"),
     oracles: await collectArtifacts(bundleRoot, "oracles"),
     validations: validateValidations(declaration.validations),
-    reviews: validateReviews(declaration.reviews),
+    reviews: validateReviews(declaration.reviews, declaration.rights?.origin),
   };
 
   // El manifiesto se serializa con salto de línea final y sin reordenar claves:
