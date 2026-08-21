@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "check": "node scripts/check-corpus.mjs",
-    "test": "node --test scripts/build-manifest.spec.mjs",
+    "test": "node --test scripts/build-manifest.spec.mjs scripts/corpus-tools.spec.mjs",
     "build-manifest": "node scripts/build-manifest.mjs"
   },
   "engines": {

@@ -56,6 +56,7 @@ export function summarizeDxf(file) {
   let section = null;
   let table = null;
   let pendingLayer = null;
+  let pendingBlockName = false;
   const closeLayer = () => {
     if (pendingLayer?.name !== undefined) {
       layers.set(pendingLayer.name, {
@@ -78,6 +79,7 @@ export function summarizeDxf(file) {
       closeLayer();
       section = null;
       table = null;
+      pendingBlockName = false;
       continue;
     }
     if (section === "TABLES") {
@@ -103,8 +105,16 @@ export function summarizeDxf(file) {
       }
       continue;
     }
-    if (section === "BLOCKS" && code === 2 && pairs[i - 1]?.[0] === 0 && pairs[i - 1]?.[1].trim() === "BLOCK") {
-      if (!value.startsWith("*")) blocks.push(value.toUpperCase());
+    if (section === "BLOCKS") {
+      // El nombre (código 2) no viene pegado al «0 BLOCK»: R12 intercala la
+      // capa (8) y el dialecto 2000 los marcadores de subclase (100). Vale el
+      // primer 2 dentro del objeto BLOCK, hasta el siguiente código 0.
+      if (code === 0) {
+        pendingBlockName = value === "BLOCK";
+      } else if (pendingBlockName && code === 2) {
+        if (!value.startsWith("*")) blocks.push(value.toUpperCase());
+        pendingBlockName = false;
+      }
       continue;
     }
     if (section === "ENTITIES" && code === 0 && value !== "VERTEX" && value !== "SEQEND") {
