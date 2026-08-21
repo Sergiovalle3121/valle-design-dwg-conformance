@@ -23,9 +23,16 @@
 
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// NOTA (ola 2): las piezas del dialecto 2000 (writer, esqueleto, emisores) se
+// EXPORTAN para que `generate-entity-dxf-2.mjs` (dibujos 16–25) componga sobre
+// ellas sin duplicarlas. Sólo se añadieron `export`: ni un byte de la salida
+// de los dibujos 09–15 cambia — sus SHA-256 siguen congelados en el manifiesto
+// de `foundational-entities-ac1015`.
 
 /** Formatea un real como lo esperan los parsers DXF clásicos. */
-const real = (value) => {
+export const real = (value) => {
   if (!Number.isFinite(value)) throw new Error(`real no finito: ${value}`);
   const text = String(value);
   return text.includes(".") || text.includes("e") ? text : `${text}.0`;
@@ -33,7 +40,7 @@ const real = (value) => {
 
 // --- escritor de pares y asignador de handles --------------------------------
 
-class Dxf2000 {
+export class Dxf2000 {
   constructor() {
     this.pairs = [];
     // Los handles fijos del esqueleto viven por debajo de 0x100; el contenido
@@ -73,7 +80,7 @@ class Dxf2000 {
 // --- esqueleto AC1015 ---------------------------------------------------------
 
 /** Handles fijos del esqueleto (hex), estables entre dibujos. */
-const H = {
+export const H = {
   blockRecordTable: "1",
   layerTable: "2",
   styleTable: "3",
@@ -156,7 +163,7 @@ const blockRecordEntry = (d, handle, name) => {
  * {name, recordHandle, base, entities} y cada emisor de entidad recibe el
  * writer y el handle del BLOCK_RECORD dueño.
  */
-function skeleton(d, { ltypes = [], layers = [], styles = [], dimstyles = [], blocks = [] }) {
+export function skeleton(d, { ltypes = [], layers = [], styles = [], dimstyles = [], blocks = [] }) {
   d.section("HEADER", () => {
     d.tag(9, "$ACADVER").tag(1, "AC1015");
     d.tag(9, "$HANDSEED").tag(5, "FFFF");
@@ -235,7 +242,7 @@ const spaceBlock = (d, name, recordHandle, blockHandle, endblkHandle, paper) => 
   d.tag(8, "0").tag(100, "AcDbBlockEnd");
 };
 
-const objectsSection = (d) => {
+export const objectsSection = (d) => {
   d.section("OBJECTS", () => {
     d.tag(0, "DICTIONARY").tag(5, H.rootDictionary).tag(330, "0");
     d.tag(100, "AcDbDictionary").tag(281, 1);
@@ -248,20 +255,20 @@ const objectsSection = (d) => {
 // --- emisores de entidad (dialecto 2000) --------------------------------------
 
 /** Prólogo común: nombre, handle propio, dueño y capa. Devuelve el handle. */
-const entity = (d, kind, owner, layer) => {
+export const entity = (d, kind, owner, layer) => {
   const handle = d.handle();
   d.tag(0, kind).tag(5, handle).tag(330, owner);
   d.tag(100, "AcDbEntity").tag(8, layer);
   return handle;
 };
 
-const line = (d, owner, { layer = "0", from, to }) => {
+export const line = (d, owner, { layer = "0", from, to }) => {
   entity(d, "LINE", owner, layer);
   d.tag(100, "AcDbLine");
   d.point(10, from[0], from[1], from[2] ?? 0).point(11, to[0], to[1], to[2] ?? 0);
 };
 
-const text = (d, owner, { layer = "0", at, height, value, rotation, style, widthFactor }) => {
+export const text = (d, owner, { layer = "0", at, height, value, rotation, style, widthFactor }) => {
   entity(d, "TEXT", owner, layer);
   d.tag(100, "AcDbText").point(10, at[0], at[1], 0);
   d.tag(40, real(height)).tag(1, value);
@@ -271,7 +278,7 @@ const text = (d, owner, { layer = "0", at, height, value, rotation, style, width
   d.tag(100, "AcDbText");
 };
 
-const mtext = (
+export const mtext = (
   d,
   owner,
   { layer = "0", at, height, width, value, attachment = 1, rotation },
@@ -289,7 +296,7 @@ const mtext = (
  * lleva el subtipo más el bit 32 (referencia de bloque), como escriben las
  * implementaciones reales.
  */
-const dimensionCommon = (d, owner, layer, { type, defPoint, textMid, style }) => {
+export const dimensionCommon = (d, owner, layer, { type, defPoint, textMid, style }) => {
   entity(d, "DIMENSION", owner, layer);
   d.tag(100, "AcDbDimension");
   d.point(10, defPoint[0], defPoint[1], 0);
@@ -311,7 +318,7 @@ const dimAligned = (d, owner, { layer, from, to, defPoint, textMid, style }) => 
   d.point(13, from[0], from[1], 0).point(14, to[0], to[1], 0);
 };
 
-const dimAngular3Point = (
+export const dimAngular3Point = (
   d,
   owner,
   { layer, vertex, firstRay, secondRay, defPoint, textMid, style },
@@ -323,7 +330,7 @@ const dimAngular3Point = (
 };
 
 /** HATCH sólido o de patrón, con caminos de tipo polilínea. */
-const hatch = (
+export const hatch = (
   d,
   owner,
   { layer = "0", pattern, solid, angle = 0, scale = 1, definitionLines = [], paths },
@@ -354,14 +361,14 @@ const hatch = (
   d.tag(98, 0);
 };
 
-const attdef = (d, owner, { layer = "0", at, height, prompt, tag, value, flags = 0 }) => {
+export const attdef = (d, owner, { layer = "0", at, height, prompt, tag, value, flags = 0 }) => {
   entity(d, "ATTDEF", owner, layer);
   d.tag(100, "AcDbText").point(10, at[0], at[1], 0);
   d.tag(40, real(height)).tag(1, value);
   d.tag(100, "AcDbAttributeDefinition").tag(3, prompt).tag(2, tag).tag(70, flags);
 };
 
-const attrib = (d, owner, { layer = "0", at, height, tag, value, flags = 0 }) => {
+export const attrib = (d, owner, { layer = "0", at, height, tag, value, flags = 0 }) => {
   entity(d, "ATTRIB", owner, layer);
   d.tag(100, "AcDbText").point(10, at[0], at[1], 0);
   d.tag(40, real(height)).tag(1, value);
@@ -369,7 +376,7 @@ const attrib = (d, owner, { layer = "0", at, height, tag, value, flags = 0 }) =>
 };
 
 /** INSERT; con `attributes` emite 66=1, los ATTRIB y su SEQEND. */
-const insert = (d, owner, { layer = "0", block, at, scale, rotation, attributes }) => {
+export const insert = (d, owner, { layer = "0", block, at, scale, rotation, attributes }) => {
   entity(d, "INSERT", owner, layer);
   d.tag(100, "AcDbBlockReference");
   if (attributes) d.tag(66, 1);
@@ -774,8 +781,13 @@ export async function writeEntityDrawings(outDir) {
 
 // --- CLI ----------------------------------------------------------------------
 
+// La CLI sólo corre cuando ESTE archivo es el punto de entrada: desde que la
+// ola 2 importa este módulo, mirar argv a secas escribiría los dibujos 09–15
+// dentro del staging de la ola equivocada.
+const isEntryPoint =
+  process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 const outFlag = process.argv.indexOf("--out");
-if (outFlag > -1) {
+if (isEntryPoint && outFlag > -1) {
   const outDir = process.argv[outFlag + 1];
   if (!outDir) {
     process.stderr.write("Uso: node scripts/generate-entity-dxf.mjs --out <directorio>\n");

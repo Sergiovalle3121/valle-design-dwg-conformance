@@ -46,5 +46,18 @@ Identificadores usados en `sourceFactIds` de los manifiestos:
   R12 de la herramienta reconoce el nombre MTEXT pero descarta sus grupos,
   por lo que esta ola exige el dialecto 2000 con esqueleto de tablas y
   handles.
+- `VALLE-CORPUS-ENTIDADES-OLA2-2026-08-21` — intake de la segunda ola de
+  entidades: diez dibujos escalonados 16–25 de autoría propia (LEADER con
+  anotación y TOLERANCE, RAY/XLINE, SOLID/TRACE/3DFACE, DIMENSION
+  radial/diametral/ordinate/angular, HATCH con isla circular, bloques
+  anidados con ATTDEF/ATTRIB, LAYOUT de papel con VIEWPORT, MLINE con
+  MLINESTYLE propio y mallas POLYLINE mesh/pface con sus VERTEX) generados
+  por `scripts/generate-entity-dxf-2.mjs` en dialecto DXF 2000 y convertidos
+  SOLO a ACAD2000 con la herramienta de este registro mediante
+  `scripts/build-entity-corpus-2.mjs`. Hecho observado 2026-08-21: el
+  conversor acepta los grupos de gradiente 450–470 en dialecto AC1015 sin
+  error, pero el DWG ACAD2000 no los conserva (el round-trip devuelve un
+  HATCH sólido plano); el HATCH de gradiente queda excluido de la ola y
+  documentado en el conversion-log del bundle.
 - `ODA-FILE-CONVERTER-27.1-MSI` — el instalador descrito arriba, con su
   SHA-256 y su estado de términos observado.
