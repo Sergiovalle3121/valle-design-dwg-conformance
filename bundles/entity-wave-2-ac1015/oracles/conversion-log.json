@@ -1,0 +1,111 @@
+{
+  "$schema": "urn:valle-design:dwg-conformance:conversion-log:v1",
+  "validator": "oda-file-converter",
+  "validatorVersion": "27.1",
+  "toolRegistryRef": "docs/TOOLS.md#oda-file-converter-27.1",
+  "targetVersion": "ACAD2000",
+  "expectedSignature": "AC1015",
+  "conversion": {
+    "tool": {
+      "name": "ODA File Converter",
+      "version": "27.1",
+      "registryRef": "docs/TOOLS.md#oda-file-converter-27.1"
+    },
+    "command": [
+      "ODAFileConverter.exe",
+      "D:/dev/tools/oda/staging/dxf-entidades-2",
+      "D:/dev/tools/oda/staging/dwg-entidades-2/ACAD2000",
+      "ACAD2000",
+      "DWG",
+      "0",
+      "1"
+    ],
+    "audit": true,
+    "startedAt": "2026-08-21T06:08:00.890Z",
+    "finishedAt": "2026-08-21T06:08:06.139Z",
+    "exitCode": 0
+  },
+  "errorFiles": [],
+  "files": [
+    {
+      "name": "16-leader-tolerance",
+      "sourceDxfSha256": "9ee40f8d93b1ffe6b98fd40c15beb021ae0b7ffbe046d320da4e126194f05e46",
+      "dwgSha256": "5de64b4d135fdf25f0d37c2bdd28fd5ab461ed9e1bd78774dae507d941363229",
+      "dwgByteLength": 96871,
+      "signature": "AC1015"
+    },
+    {
+      "name": "17-ray-xline",
+      "sourceDxfSha256": "2b37f7bc1d3bd6b9880ca85a0d542d4e4e6d0d172f6cf242c90c14f8dc17fa70",
+      "dwgSha256": "d31eb5ef0d7872a4642ec56b60e848b13d5aae21540e13ef49de6fb1a2308323",
+      "dwgByteLength": 97019,
+      "signature": "AC1015"
+    },
+    {
+      "name": "18-solid-trace-3dface",
+      "sourceDxfSha256": "c4b2da0f722f73cd5e6e8205c4b4f232003a1c9f344841aed1a3a03920e3f68c",
+      "dwgSha256": "36798ba943c64c5bd2ac4d47e535bdbfc8977a49e76821742d73be3c09413247",
+      "dwgByteLength": 96790,
+      "signature": "AC1015"
+    },
+    {
+      "name": "19-dim-radial-diameter",
+      "sourceDxfSha256": "daa076e57b7d1e73554abeb0431f99a6e975bff5e2210eb381c909eff27453b3",
+      "dwgSha256": "a917565031df86b4eefa6bb7ceab2ec7e9aaabcf23e067dd1efa95cb00d8ac12",
+      "dwgByteLength": 98247,
+      "signature": "AC1015"
+    },
+    {
+      "name": "20-dim-ordinate-angular",
+      "sourceDxfSha256": "a422d0af66096bb9f6575d04ad2dee85b62f845ca5fe4482edd51bd2b6e5f85c",
+      "dwgSha256": "164862412230a442f479733d4a07c16061f6a937e4b5c9f826084a6a3a928708",
+      "dwgByteLength": 98708,
+      "signature": "AC1015"
+    },
+    {
+      "name": "21-hatch-islands",
+      "sourceDxfSha256": "ad9c3f05c11c79831dfaa8c33e42404102dfadc3da581710d0688a05d98710c2",
+      "dwgSha256": "a06b0402f8ac4a69755ef578e423a090341c5533d6e805cf8834e188b8e6860b",
+      "dwgByteLength": 96627,
+      "signature": "AC1015"
+    },
+    {
+      "name": "22-nested-attribs",
+      "sourceDxfSha256": "bd904a99890a5f4cdb8db9bec4930e0c7b94f21639100a8453bb8ed9da553ce3",
+      "dwgSha256": "96067cd49aee6efdac39857628758e76489068c9e557c55a81ed5d37d9ea7abd",
+      "dwgByteLength": 97762,
+      "signature": "AC1015"
+    },
+    {
+      "name": "23-layout-viewport",
+      "sourceDxfSha256": "8008d5ec227e081bc5cfe78e9f6ea433663781aa4ea5dad34d06e78da54076b2",
+      "dwgSha256": "9c0759d67834a9911d7439454f5b004f9d742d7665324b60b5a8c60f8dc8d25b",
+      "dwgByteLength": 97415,
+      "signature": "AC1015"
+    },
+    {
+      "name": "24-mline",
+      "sourceDxfSha256": "c54167d10140d4d3e950083992cc8461be704b55a613a26c87ae569c87e4364c",
+      "dwgSha256": "dc3772be33c7b28b59fcb50391c0c051116af497a206dfd7002de7cf6b5548e9",
+      "dwgByteLength": 96643,
+      "signature": "AC1015"
+    },
+    {
+      "name": "25-vertex-mesh",
+      "sourceDxfSha256": "48a989cd53ce51aa9bbb6e42262340e42507782249b413581541b20bb793c08a",
+      "dwgSha256": "4b0148a4646354bf237027bb65ffd9a815b54301737808a8f3701f02255805ae",
+      "dwgByteLength": 97283,
+      "signature": "AC1015"
+    }
+  ],
+  "rejected": [],
+  "documentedExclusions": [
+    {
+      "drawing": "21-hatch-islands",
+      "type": "HATCH (gradiente)",
+      "observedAt": "2026-08-21",
+      "fact": "Sondeado con un DXF aparte (rectángulo con grupos 450–470, gradiente LINEAR de dos colores): la herramienta conversora 27.1 acepta la entrada sin .err y produce DWG ACAD2000 con firma AC1015, pero el round-trip DWG→DXF devuelve un HATCH sólido sin rastro de los grupos de gradiente (0 apariciones de 450/470 frente a 2 en la fuente). El contenedor AC1015 no conserva gradientes — llegaron con AC1018 — así que el tipo queda fuera de esta ola y entrará con un bundle AC1018."
+    }
+  ],
+  "result": "accepted"
+}
