@@ -15,6 +15,19 @@ function fail(message) {
   throw new Error(`DWG corpus gate: ${message}`);
 }
 
+/**
+ * El `additionalProperties: false` de los esquemas era decorativo: ningún
+ * script los cargaba y un manifiesto con campos inventados pasaba en verde.
+ * Este es el punto de aplicación real — el gate, no el productor.
+ */
+function assertOnlyKeys(value, allowed, context) {
+  for (const key of Object.keys(value ?? {})) {
+    if (!allowed.has(key)) fail(`${context} has an unexpected key "${key}"`);
+  }
+}
+
+const attestationPattern = /^private-attestation:[A-Za-z0-9._:-]{1,128}$/;
+
 function inside(parent, child) {
   const candidate = relative(parent, child);
   return (
@@ -79,12 +92,18 @@ async function validateArtifacts(
   artifacts,
   prefix,
   seenPaths,
+  foldedPaths,
   seenIds,
 ) {
   if (!Array.isArray(artifacts) || artifacts.length === 0) {
     fail(`${prefix} must contain at least one artifact`);
   }
   for (const artifact of artifacts) {
+    assertOnlyKeys(
+      artifact,
+      new Set(["id", "path", "sha256", "byteLength"]),
+      `${prefix} artifact`,
+    );
     if (
       typeof artifact?.id !== "string" ||
       !bundleIdPattern.test(artifact.id) ||
@@ -94,9 +113,14 @@ async function validateArtifacts(
     }
     seenIds.add(artifact.id);
     const path = portablePath(artifact?.path, prefix);
+    // Dos registros a propósito: el plegado detecta duplicados que sólo
+    // difieren en mayúsculas (letales en un sistema de archivos insensible),
+    // y el LITERAL alimenta el inventario físico — compararlo plegado hacía
+    // que un fixture con mayúsculas legales muriera con dos mensajes falsos.
     const folded = path.normalize("NFC").toLowerCase();
-    if (seenPaths.has(folded)) fail(`duplicate artifact path`);
-    seenPaths.add(folded);
+    if (foldedPaths.has(folded)) fail(`duplicate artifact path`);
+    foldedPaths.add(folded);
+    seenPaths.add(path);
     if (!sha256Pattern.test(artifact?.sha256 ?? "")) fail(`invalid SHA-256`);
     if (
       !Number.isSafeInteger(artifact?.byteLength) ||
@@ -138,6 +162,57 @@ async function validateBundle(indexEntry) {
     fail(`manifest hash mismatch`);
   }
   const manifest = await json(manifestPath);
+  assertOnlyKeys(
+    manifest,
+    new Set([
+      "schemaVersion",
+      "id",
+      "status",
+      "dwgVersion",
+      "rights",
+      "reviews",
+      "validations",
+      "sourceFactIds",
+      "fixtures",
+      "oracles",
+    ]),
+    "manifest",
+  );
+  assertOnlyKeys(
+    manifest.rights,
+    new Set([
+      "origin",
+      "owner",
+      "tool",
+      "toolVersion",
+      "outputRights",
+      "redistribution",
+      "attestationRef",
+      "toolRegistryRef",
+      "containsClientData",
+    ]),
+    "manifest.rights",
+  );
+  // Los campos LEGALES por los que este repositorio existe. El productor ya
+  // los exigía, pero el productor corre en un portátil bajo supervisión; el
+  // punto de aplicación es el gate, que decide el merge desatendido.
+  for (const field of [
+    "owner",
+    "tool",
+    "toolVersion",
+    "outputRights",
+    "redistribution",
+  ]) {
+    if (
+      typeof manifest.rights?.[field] !== "string" ||
+      manifest.rights[field].trim() === ""
+    ) {
+      fail(`manifest rights.${field} is missing or empty`);
+    }
+  }
+  if (!attestationPattern.test(manifest.rights?.attestationRef ?? "")) {
+    fail(`manifest rights.attestationRef is missing or malformed`);
+  }
   if (
     manifest.schemaVersion !== "1.0.0" ||
     manifest.id !== indexEntry.id ||
@@ -202,6 +277,11 @@ async function validateBundle(indexEntry) {
   }
   const validators = new Set();
   for (const validation of manifest.validations) {
+    assertOnlyKeys(
+      validation,
+      new Set(["validator", "version", "result", "evidenceSha256"]),
+      "manifest validation",
+    );
     if (
       typeof validation?.validator !== "string" ||
       typeof validation?.version !== "string" ||
@@ -210,16 +290,23 @@ async function validateBundle(indexEntry) {
     ) {
       fail(`bundle validation is incomplete or not accepted`);
     }
-    validators.add(`${validation.validator}\0${validation.version}`);
+    // El MISMO criterio que el productor (build-manifest.mjs): dos NOMBRES
+    // de oráculo distintos, plegados. El criterio anterior (par
+    // validador+versión, sensible a mayúsculas) aceptaba como «dos» al mismo
+    // oráculo en dos versiones — más débil justo en el eje que la política
+    // protege.
+    validators.add(validation.validator.toLowerCase());
   }
   if (validators.size < 2) fail(`bundle requires two independent validators`);
   const seenPaths = new Set();
+  const foldedPaths = new Set();
   const seenIds = new Set();
   await validateArtifacts(
     bundleRoot,
     manifest.fixtures,
     "fixtures",
     seenPaths,
+    foldedPaths,
     seenIds,
   );
   await validateArtifacts(
@@ -227,6 +314,7 @@ async function validateBundle(indexEntry) {
     manifest.oracles,
     "oracles",
     seenPaths,
+    foldedPaths,
     seenIds,
   );
 
@@ -253,64 +341,86 @@ async function validateBundle(indexEntry) {
     fail(`bundle is missing a manifest-listed file`);
 }
 
-const manifest = await json(resolve(root, "package.json"));
-if (manifest.private !== true || manifest.license !== "UNLICENSED") {
-  fail(`package.json must remain private and UNLICENSED`);
-}
-
-const index = await json(resolve(root, "index.json"));
-if (
-  index.schemaVersion !== "1.0.0" ||
-  !/^\d{4}-\d{2}-\d{2}$/.test(index.updatedAt ?? "") ||
-  !Array.isArray(index.bundles)
-) {
-  fail(`index.json has an unsupported shape`);
-}
-const ids = new Set();
-const manifests = new Set();
-for (const entry of index.bundles) {
-  if (ids.has(entry?.id) || manifests.has(entry?.manifestPath)) {
-    fail(`duplicate bundle id or manifest path`);
+async function main() {
+  const manifest = await json(resolve(root, "package.json"));
+  if (manifest.private !== true || manifest.license !== "UNLICENSED") {
+    fail(`package.json must remain private and UNLICENSED`);
   }
-  ids.add(entry.id);
-  manifests.add(entry.manifestPath);
-  await validateBundle(entry);
+
+  const index = await json(resolve(root, "index.json"));
+  assertOnlyKeys(
+    index,
+    new Set(["$schema", "schemaVersion", "updatedAt", "bundles"]),
+    "index",
+  );
+  if (
+    index.schemaVersion !== "1.0.0" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(index.updatedAt ?? "") ||
+    !Array.isArray(index.bundles)
+  ) {
+    fail(`index.json has an unsupported shape`);
+  }
+  const ids = new Set();
+  const manifests = new Set();
+  for (const entry of index.bundles) {
+    assertOnlyKeys(
+      entry,
+      new Set(["id", "manifestPath", "manifestSha256"]),
+      "index bundle entry",
+    );
+    if (ids.has(entry?.id) || manifests.has(entry?.manifestPath)) {
+      fail(`duplicate bundle id or manifest path`);
+    }
+    ids.add(entry.id);
+    manifests.add(entry.manifestPath);
+    await validateBundle(entry);
+  }
+
+  let physicalBundleCount = 0;
+  try {
+    for (const entry of await readdir(bundlesRoot, { withFileTypes: true })) {
+      if (entry.isSymbolicLink() || !entry.isDirectory()) {
+        fail(`bundles contains a non-directory or symlink entry`);
+      }
+      physicalBundleCount += 1;
+      if (!ids.has(entry.name)) fail(`unmanifested physical bundle`);
+    }
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+  }
+  if (physicalBundleCount !== index.bundles.length)
+    fail(`bundle inventory mismatch`);
+
+  const repositoryPending = [root];
+  while (repositoryPending.length > 0) {
+    const directory = repositoryPending.pop();
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if ([".git", "incoming", "private-notes"].includes(entry.name)) continue;
+      const entryPath = resolve(directory, entry.name);
+      if (entry.isSymbolicLink()) fail(`repository contains a symlink`);
+      if (entry.isDirectory()) {
+        repositoryPending.push(entryPath);
+      } else if (
+        entry.isFile() &&
+        entry.name.toLowerCase().endsWith(".dwg") &&
+        !inside(bundlesRoot, entryPath)
+      ) {
+        fail(`DWG bytes exist outside an admitted bundle`);
+      }
+    }
+  }
+
+  process.stdout.write(
+    `${JSON.stringify({ bundles: index.bundles.length, status: "ok" })}\n`,
+  );
 }
 
-let physicalBundleCount = 0;
 try {
-  for (const entry of await readdir(bundlesRoot, { withFileTypes: true })) {
-    if (entry.isSymbolicLink() || !entry.isDirectory()) {
-      fail(`bundles contains a non-directory or symlink entry`);
-    }
-    physicalBundleCount += 1;
-    if (!ids.has(entry.name)) fail(`unmanifested physical bundle`);
-  }
+  await main();
 } catch (error) {
-  if (error?.code !== "ENOENT") throw error;
+  // Sólo el MENSAJE: un stack con rutas absolutas en el log de CI roza la
+  // regla del corpus de no imprimir nombres sensibles. El mensaje del gate
+  // ya nombra el problema sin rutas de máquina.
+  console.error(String(error?.message ?? error));
+  process.exit(1);
 }
-if (physicalBundleCount !== index.bundles.length)
-  fail(`bundle inventory mismatch`);
-
-const repositoryPending = [root];
-while (repositoryPending.length > 0) {
-  const directory = repositoryPending.pop();
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    if ([".git", "incoming", "private-notes"].includes(entry.name)) continue;
-    const entryPath = resolve(directory, entry.name);
-    if (entry.isSymbolicLink()) fail(`repository contains a symlink`);
-    if (entry.isDirectory()) {
-      repositoryPending.push(entryPath);
-    } else if (
-      entry.isFile() &&
-      entry.name.toLowerCase().endsWith(".dwg") &&
-      !inside(bundlesRoot, entryPath)
-    ) {
-      fail(`DWG bytes exist outside an admitted bundle`);
-    }
-  }
-}
-
-process.stdout.write(
-  `${JSON.stringify({ bundles: index.bundles.length, status: "ok" })}\n`,
-);

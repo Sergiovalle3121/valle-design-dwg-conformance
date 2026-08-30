@@ -1,6 +1,8 @@
+# Primero la regla GENERAL: en gitattributes gana la ÚLTIMA coincidencia, y
+# con text=auto al final anulaba a las dos reglas binarias de arriba.
+* text=auto
 *.dwg binary -diff -merge
 *.bin binary -diff -merge
-* text=auto
 # Los artefactos de un bundle son BYTES congelados: su SHA-256 vive en el
 # manifiesto y en el índice. Ninguna normalización de fin de línea puede
 # tocarlos, o el hash del working tree dejaría de coincidir con el del blob.
