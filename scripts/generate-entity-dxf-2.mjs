@@ -9,11 +9,12 @@
 // con sus VERTEX.
 //
 // Compone sobre el dialecto 2000 EXPORTADO por generate-entity-dxf.mjs
-// (writer, esqueleto de tablas con handles fijos, emisores comunes). Los
-// dibujos 09–15 no cambian ni un byte: este módulo sólo añade emisores para
-// los tipos nuevos y dos ganchos que el esqueleto de la ola 1 no necesitaba —
-// entidades de espacio papel (bandera 67) y una sección OBJECTS propia
-// (diccionario ACAD_MLINESTYLE con su MLINESTYLE).
+// (writer, esqueleto de tablas con handles fijos, emisores comunes — entity
+// con bandera de espacio papel, mtext con estilo y handle, hatch con bulge).
+// Los dibujos 09–15 no cambian ni un byte: este módulo sólo añade emisores
+// para los tipos nuevos y un gancho que el esqueleto de la ola 1 no
+// necesitaba — una sección OBJECTS propia (diccionario ACAD_MLINESTYLE con su
+// MLINESTYLE).
 //
 // Determinismo y autoría: mismas reglas que la ola 1 — mismo código → mismos
 // bytes (LF, sin fechas, sin aleatoriedad, handles secuenciales desde 0x100) y
@@ -32,46 +33,23 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  ANSI31_OFFSET,
   Dxf2000,
   H,
   attdef,
   dimensionCommon,
   dimAngular3Point,
   entity,
+  hatch,
   insert,
   line,
+  mtext,
   objectsSection,
   real,
   skeleton,
 } from "./generate-entity-dxf.mjs";
 
 // --- emisores nuevos de la ola 2 ---------------------------------------------
-
-/**
- * Prólogo de entidad de ESPACIO PAPEL: como `entity`, pero con la bandera 67
- * entre AcDbEntity y la capa, igual que el esqueleto la escribe en
- * *Paper_Space. Devuelve el handle.
- */
-const paperEntity = (d, kind, owner, layer) => {
-  const handle = d.handle();
-  d.tag(0, kind).tag(5, handle).tag(330, owner);
-  d.tag(100, "AcDbEntity").tag(67, 1).tag(8, layer);
-  return handle;
-};
-
-/** MTEXT con estilo propio; devuelve el handle (lo necesita LEADER 340). */
-const mtext2 = (
-  d,
-  owner,
-  { layer = "0", at, height, width, value, attachment = 1, style },
-) => {
-  const handle = entity(d, "MTEXT", owner, layer);
-  d.tag(100, "AcDbMText").point(10, at[0], at[1], 0);
-  d.tag(40, real(height)).tag(41, real(width));
-  d.tag(71, attachment).tag(72, 1).tag(1, value);
-  if (style !== undefined) d.tag(7, style);
-  return handle;
-};
 
 /**
  * LEADER con vértices y, opcionalmente, una anotación MTEXT asociada por
@@ -158,53 +136,6 @@ const dimOrdinate = (d, owner, { layer, origin, feature, leaderEnd, xDatum, text
   d.tag(100, "AcDbOrdinateDimension");
   d.point(13, feature[0], feature[1], 0);
   d.point(14, leaderEnd[0], leaderEnd[1], 0);
-};
-
-/**
- * HATCH de la ola 2: como el de la ola 1 pero con vértices [x, y, bulge] en
- * los caminos de polilínea (una isla circular son dos vértices con bulge 1) y
- * cola opcional de gradiente (grupos 450–470, sondeados contra el conversor).
- */
-const hatch2 = (
-  d,
-  owner,
-  { layer = "0", pattern, solid, angle = 0, scale = 1, definitionLines = [], paths, gradient },
-) => {
-  entity(d, "HATCH", owner, layer);
-  d.tag(100, "AcDbHatch").point(10, 0, 0, 0).tag(210, "0.0").tag(220, "0.0").tag(230, "1.0");
-  d.tag(2, pattern).tag(70, solid ? 1 : 0).tag(71, 0);
-  d.tag(91, paths.length);
-  for (const path of paths) {
-    d.tag(92, path.external ? 3 : 2);
-    const hasBulge = path.vertices.some((vertex) => vertex[2] !== undefined && vertex[2] !== 0);
-    d.tag(72, hasBulge ? 1 : 0).tag(73, 1).tag(93, path.vertices.length);
-    for (const [x, y, bulge] of path.vertices) {
-      d.point(10, x, y);
-      if (hasBulge) d.tag(42, real(bulge ?? 0));
-    }
-    d.tag(97, 0);
-  }
-  d.tag(75, 0).tag(76, 1);
-  if (!solid) {
-    d.tag(52, real(angle)).tag(41, real(scale)).tag(77, 0);
-    d.tag(78, definitionLines.length);
-    for (const defLine of definitionLines) {
-      d.tag(53, real(defLine.angle));
-      d.tag(43, real(defLine.base[0])).tag(44, real(defLine.base[1]));
-      d.tag(45, real(defLine.offset[0])).tag(46, real(defLine.offset[1]));
-      d.tag(79, defLine.dashes?.length ?? 0);
-      for (const dash of defLine.dashes ?? []) d.tag(49, real(dash));
-    }
-  }
-  d.tag(98, 0);
-  if (gradient) {
-    d.tag(450, 1).tag(451, 0);
-    d.tag(460, real(gradient.angle ?? 0)).tag(461, "0.0").tag(452, 0).tag(462, "0.0");
-    d.tag(453, 2);
-    d.tag(463, "0.0").tag(63, gradient.colors[0]).tag(421, gradient.rgb[0]);
-    d.tag(463, "1.0").tag(63, gradient.colors[1]).tag(421, gradient.rgb[1]);
-    d.tag(470, gradient.name ?? "LINEAR");
-  }
 };
 
 const unit = ([x, y]) => {
@@ -301,7 +232,7 @@ const viewport = (
   owner,
   { layer = "0", center, width, height, id, status, viewCenter = [0, 0], viewHeight },
 ) => {
-  paperEntity(d, "VIEWPORT", owner, layer);
+  entity(d, "VIEWPORT", owner, layer, { paper: true });
   d.tag(100, "AcDbViewport");
   d.point(10, center[0], center[1], 0);
   d.tag(40, real(width)).tag(41, real(height));
@@ -320,9 +251,6 @@ const viewport = (
 
 // --- los diez dibujos de la ola 2 ---------------------------------------------
 
-/** Offset del vector de ANSI31 a escala 1: 0.125·(cos135°, sin135°). */
-const ANSI31_OFFSET = [-0.0883883476483184, 0.0883883476483184];
-
 export const ENTITY_DRAWINGS_2 = [
   {
     name: "16-leader-tolerance",
@@ -332,7 +260,7 @@ export const ENTITY_DRAWINGS_2 = [
       layers: [{ name: "DETALLES", color: 4 }],
       styles: [{ name: "ROTU-OLA2", widthFactor: 1, oblique: 0 }],
       model: (d, owner) => {
-        const nota1 = mtext2(d, owner, {
+        const nota1 = mtext(d, owner, {
           layer: "DETALLES",
           at: [58, 44],
           height: 3.5,
@@ -349,7 +277,7 @@ export const ENTITY_DRAWINGS_2 = [
           ],
           annotation: { handle: nota1, height: 3.5, width: 40 },
         });
-        const nota2 = mtext2(d, owner, {
+        const nota2 = mtext(d, owner, {
           layer: "DETALLES",
           at: [118, 10],
           height: 3.5,
@@ -560,7 +488,7 @@ export const ENTITY_DRAWINGS_2 = [
     content: {
       layers: [{ name: "MUROS-2", color: 1 }],
       model: (d, owner) => {
-        hatch2(d, owner, {
+        hatch(d, owner, {
           layer: "MUROS-2",
           pattern: "ANSI31",
           solid: false,
@@ -588,7 +516,7 @@ export const ENTITY_DRAWINGS_2 = [
             },
           ],
         });
-        hatch2(d, owner, {
+        hatch(d, owner, {
           layer: "MUROS-2",
           pattern: "SOLID",
           solid: true,
