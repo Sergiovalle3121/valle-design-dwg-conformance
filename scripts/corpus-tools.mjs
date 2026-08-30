@@ -17,6 +17,22 @@ import fs from "node:fs";
 import path from "node:path";
 
 /** La herramienta registrada en docs/TOOLS.md que produce y valida los DWG. */
+/**
+ * ¿`child` vive dentro de `parent`? Contención LEXICAL real — la misma
+ * implementación que check-corpus.mjs y build-manifest.mjs. Un
+ * `startsWith(root)` no es contención: `/repo-tmp` empieza por `/repo` y
+ * moriría como falso positivo, y la comparación no entiende `..`.
+ */
+export function inside(parent, child) {
+  const candidate = path.relative(parent, child);
+  return (
+    candidate === "" ||
+    (candidate !== ".." &&
+      !candidate.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(candidate))
+  );
+}
+
 export const TOOL = {
   name: "ODA File Converter",
   version: "27.1",
