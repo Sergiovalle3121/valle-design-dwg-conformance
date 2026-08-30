@@ -28,6 +28,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Run producer, tooling and gate specs
+        run: npm test
+
       - name: Validate manifests, paths, hashes and inventory
         run: npm run check
 
