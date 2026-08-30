@@ -44,6 +44,7 @@ import {
   sha256,
   sha256File,
   summarizeDxf,
+  inside,
 } from "./corpus-tools.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -74,7 +75,7 @@ const flag = (name) => {
 const stagingArg = flag("--staging");
 if (!stagingArg) fail("falta --staging <dir> (un directorio FUERA del repositorio)");
 const staging = path.resolve(stagingArg);
-if (staging.startsWith(root)) fail("el staging no puede vivir dentro del repositorio");
+if (inside(root, staging)) fail("el staging no puede vivir dentro del repositorio");
 const odaExe = flag("--oda") ?? process.env.ODA_FILE_CONVERTER;
 if (!odaExe || !fs.existsSync(odaExe)) {
   fail("falta el ejecutable del conversor (--oda <exe> o ODA_FILE_CONVERTER)");
@@ -139,6 +140,12 @@ for (const target of TARGETS) {
 
   if (conversion.exitCode !== 0 || conversionErrors.length > 0) {
     fail(`${target.parameter}: la conversión reportó errores (${conversionErrors.length} .err)`);
+  }
+  // La vuelta (DWG→DXF) es la etapa que produce el veredicto del SEGUNDO
+  // validador: sus .err y su exit code se comprueban igual que los de la ida
+  // — se recolectaban y nadie los miraba.
+  if (roundtrip.exitCode !== 0 || roundtripErrors.length > 0) {
+    fail(`${target.parameter}: el round-trip reportó errores (${roundtripErrors.length} .err, exit ${roundtrip.exitCode})`);
   }
   if (rejected > 0) {
     fail(`${target.parameter}: ${rejected} archivo(s) rechazado(s) por el round-trip estructural`);

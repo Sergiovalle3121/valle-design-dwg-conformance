@@ -35,6 +35,7 @@ import {
   sha256,
   sha256File,
   summarizeDxf,
+  inside,
 } from "./corpus-tools.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -55,7 +56,7 @@ const flag = (name) => {
 const stagingArg = flag("--staging");
 if (!stagingArg) fail("falta --staging <dir> (un directorio FUERA del repositorio)");
 const staging = path.resolve(stagingArg);
-if (staging.startsWith(root)) fail("el staging no puede vivir dentro del repositorio");
+if (inside(root, staging)) fail("el staging no puede vivir dentro del repositorio");
 const odaExe = flag("--oda") ?? process.env.ODA_FILE_CONVERTER;
 if (!odaExe || !fs.existsSync(odaExe)) {
   fail("falta el ejecutable del conversor (--oda <exe> o ODA_FILE_CONVERTER)");
@@ -106,6 +107,11 @@ for (const source of sources) {
 // 2) DWG → DXF de vuelta, y comparación estructural contra la fuente.
 const roundtrip = runConverter(odaExe, dwgDir, roundtripDir, "ACAD2000", "DXF", fail);
 const roundtripErrors = collectErrorFiles(roundtripDir);
+// Igual que la ida: la vuelta produce el veredicto del segundo validador y
+// sus errores no pueden quedarse en el informe sin tumbar la corrida.
+if (roundtrip.exitCode !== 0 || roundtripErrors.length > 0) {
+  fail(`${TARGET.parameter}: el round-trip reportó errores (${roundtripErrors.length} .err, exit ${roundtrip.exitCode})`);
+}
 const comparisons = {};
 let rejected = 0;
 for (const source of sources) {

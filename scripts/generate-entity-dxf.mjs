@@ -27,9 +27,12 @@ import { fileURLToPath } from "node:url";
 
 // NOTA (ola 2): las piezas del dialecto 2000 (writer, esqueleto, emisores) se
 // EXPORTAN para que `generate-entity-dxf-2.mjs` (dibujos 16–25) componga sobre
-// ellas sin duplicarlas. Sólo se añadieron `export`: ni un byte de la salida
-// de los dibujos 09–15 cambia — sus SHA-256 siguen congelados en el manifiesto
-// de `foundational-entities-ac1015`.
+// ellas sin duplicarlas. Los emisores compartidos están parametrizados para
+// cubrir las dos olas (entity con bandera de espacio papel, mtext con estilo,
+// hatch con bulge y cola de gradiente): con los parámetros extra ausentes la
+// salida de los dibujos 09–15 es byte a byte la de siempre — verificado con
+// diff contra la salida previa al cambio — y sus SHA-256 siguen congelados en
+// el manifiesto de `foundational-entities-ac1015`.
 
 /** Formatea un real como lo esperan los parsers DXF clásicos. */
 export const real = (value) => {
@@ -254,11 +257,17 @@ export const objectsSection = (d) => {
 
 // --- emisores de entidad (dialecto 2000) --------------------------------------
 
-/** Prólogo común: nombre, handle propio, dueño y capa. Devuelve el handle. */
-export const entity = (d, kind, owner, layer) => {
+/**
+ * Prólogo común: nombre, handle propio, dueño y capa. Devuelve el handle.
+ * Con `paper: true` emite la bandera 67 entre AcDbEntity y la capa, igual que
+ * el esqueleto la escribe en *Paper_Space (lo usa la ola 2 para VIEWPORT).
+ */
+export const entity = (d, kind, owner, layer, { paper = false } = {}) => {
   const handle = d.handle();
   d.tag(0, kind).tag(5, handle).tag(330, owner);
-  d.tag(100, "AcDbEntity").tag(8, layer);
+  d.tag(100, "AcDbEntity");
+  if (paper) d.tag(67, 1);
+  d.tag(8, layer);
   return handle;
 };
 
@@ -278,16 +287,19 @@ export const text = (d, owner, { layer = "0", at, height, value, rotation, style
   d.tag(100, "AcDbText");
 };
 
+/** MTEXT; devuelve el handle (lo necesita el LEADER 340 de la ola 2). */
 export const mtext = (
   d,
   owner,
-  { layer = "0", at, height, width, value, attachment = 1, rotation },
+  { layer = "0", at, height, width, value, attachment = 1, rotation, style },
 ) => {
-  entity(d, "MTEXT", owner, layer);
+  const handle = entity(d, "MTEXT", owner, layer);
   d.tag(100, "AcDbMText").point(10, at[0], at[1], 0);
   d.tag(40, real(height)).tag(41, real(width));
   d.tag(71, attachment).tag(72, 1).tag(1, value);
   if (rotation !== undefined) d.tag(50, real(rotation));
+  if (style !== undefined) d.tag(7, style);
+  return handle;
 };
 
 /**
@@ -329,11 +341,18 @@ export const dimAngular3Point = (
   d.point(15, vertex[0], vertex[1], 0);
 };
 
-/** HATCH sólido o de patrón, con caminos de tipo polilínea. */
+/**
+ * HATCH sólido o de patrón, con caminos de tipo polilínea. Los vértices son
+ * [x, y, bulge?] (una isla circular de la ola 2 son dos vértices con bulge 1;
+ * sin bulge en ningún vértice el camino se emite plano, como en la ola 1).
+ * La cola opcional de gradiente (grupos 450–470) existe sólo para sondear el
+ * conversor — ningún dibujo admitido la usa: el contenedor AC1015 no conserva
+ * gradientes (ver DOCUMENTED_EXCLUSIONS en la ola 2).
+ */
 export const hatch = (
   d,
   owner,
-  { layer = "0", pattern, solid, angle = 0, scale = 1, definitionLines = [], paths },
+  { layer = "0", pattern, solid, angle = 0, scale = 1, definitionLines = [], paths, gradient },
 ) => {
   entity(d, "HATCH", owner, layer);
   d.tag(100, "AcDbHatch").point(10, 0, 0, 0).tag(210, "0.0").tag(220, "0.0").tag(230, "1.0");
@@ -342,8 +361,12 @@ export const hatch = (
   for (const path of paths) {
     // 92: 1 externo | 2 polilínea | 16 exterior; una isla viaja sólo como 2.
     d.tag(92, path.external ? 3 : 2);
-    d.tag(72, 0).tag(73, 1).tag(93, path.vertices.length);
-    for (const [x, y] of path.vertices) d.point(10, x, y);
+    const hasBulge = path.vertices.some((vertex) => vertex[2] !== undefined && vertex[2] !== 0);
+    d.tag(72, hasBulge ? 1 : 0).tag(73, 1).tag(93, path.vertices.length);
+    for (const [x, y, bulge] of path.vertices) {
+      d.point(10, x, y);
+      if (hasBulge) d.tag(42, real(bulge ?? 0));
+    }
     d.tag(97, 0);
   }
   d.tag(75, 0).tag(76, 1);
@@ -359,6 +382,14 @@ export const hatch = (
     }
   }
   d.tag(98, 0);
+  if (gradient) {
+    d.tag(450, 1).tag(451, 0);
+    d.tag(460, real(gradient.angle ?? 0)).tag(461, "0.0").tag(452, 0).tag(462, "0.0");
+    d.tag(453, 2);
+    d.tag(463, "0.0").tag(63, gradient.colors[0]).tag(421, gradient.rgb[0]);
+    d.tag(463, "1.0").tag(63, gradient.colors[1]).tag(421, gradient.rgb[1]);
+    d.tag(470, gradient.name ?? "LINEAR");
+  }
 };
 
 export const attdef = (d, owner, { layer = "0", at, height, prompt, tag, value, flags = 0 }) => {
@@ -433,7 +464,7 @@ const spline = (d, owner, { layer = "0", degree, knots, controlPoints, flags = 8
 // --- los siete dibujos de la ola ----------------------------------------------
 
 /** Offset del vector de ANSI31 a escala 1: 0.125·(cos135°, sin135°). */
-const ANSI31_OFFSET = [-0.0883883476483184, 0.0883883476483184];
+export const ANSI31_OFFSET = [-0.0883883476483184, 0.0883883476483184];
 
 export const ENTITY_DRAWINGS = [
   {

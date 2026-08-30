@@ -1,8 +1,14 @@
-# Reglas del corpus DWG privado
+# Reglas del corpus DWG propietario
 
-- Mantener este repositorio privado y propietario (`UNLICENSED`).
+- El material es propietario (`UNLICENSED`): la visibilidad del repositorio la
+  decide el titular, y que hoy sea público en GitHub no concede licencia
+  alguna. No añadir licencias open source ni conceder derechos sobre fixtures,
+  oráculos o herramientas.
 - No consultar ni incorporar material en cuarentena.
-- No añadir fixtures sin derechos, hash, tamaño, oracle y dos revisores humanos.
+- No añadir fixtures sin derechos, hash, tamaño, oracle y la revisión que
+  `CORPUS_POLICY.md` exige para su origen: dos revisores humanos, salvo
+  `tool-converted-original` (enmienda 2026-08-20 §b: revisor-propietario más
+  dos validaciones automáticas independientes con evidencia hasheada).
 - No usar archivos de clientes, samples instalados ni archivos encontrados en
   Internet.
 - No copiar, traducir, portar ni adaptar codecs, tablas o tests externos.

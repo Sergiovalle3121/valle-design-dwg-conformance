@@ -376,15 +376,23 @@ export async function writeDrawings(outDir) {
 
 // --- CLI ----------------------------------------------------------------------
 
-const outFlag = process.argv.indexOf("--out");
-if (outFlag > -1) {
-  const outDir = process.argv[outFlag + 1];
+// Guarda de entry-point REAL, como en los dos generadores de entidades: sin
+// ella, un `--out` en el argv del PADRE que importa este módulo escribía los
+// ocho DXF en un directorio inesperado — la CLI corría AL IMPORTAR. La
+// comparación es por ruta resuelta, no por basename (dos archivos con el
+// mismo nombre en carpetas distintas engañan al endsWith).
+import { fileURLToPath } from "node:url";
+const invokedDirectly =
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  const outFlag = process.argv.indexOf("--out");
+  const outDir = outFlag > -1 ? process.argv[outFlag + 1] : undefined;
   if (!outDir) {
     process.stderr.write("Uso: node scripts/generate-foundational-dxf.mjs --out <directorio>\n");
-    process.exit(1);
+    process.exit(outFlag > -1 ? 1 : 0);
+  } else {
+    const files = await writeDrawings(resolve(outDir));
+    process.stdout.write(`${files.length} DXF fundacionales escritos en ${resolve(outDir)}\n`);
   }
-  const files = await writeDrawings(resolve(outDir));
-  process.stdout.write(`${files.length} DXF fundacionales escritos en ${resolve(outDir)}\n`);
-} else if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replaceAll("\\", "/").split("/").pop())) {
-  process.stdout.write("Uso: node scripts/generate-foundational-dxf.mjs --out <directorio>\n");
 }

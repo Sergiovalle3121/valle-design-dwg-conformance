@@ -44,6 +44,7 @@ import {
   sha256,
   sha256File,
   summarizeDxf,
+  inside,
 } from "./corpus-tools.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -64,7 +65,7 @@ const flag = (name) => {
 const stagingArg = flag("--staging");
 if (!stagingArg) fail("falta --staging <dir> (un directorio FUERA del repositorio)");
 const staging = path.resolve(stagingArg);
-if (staging.startsWith(root)) fail("el staging no puede vivir dentro del repositorio");
+if (inside(root, staging)) fail("el staging no puede vivir dentro del repositorio");
 const odaExe = flag("--oda") ?? process.env.ODA_FILE_CONVERTER;
 if (!odaExe || !fs.existsSync(odaExe)) {
   fail("falta el ejecutable del conversor (--oda <exe> o ODA_FILE_CONVERTER)");
@@ -91,9 +92,25 @@ fs.mkdirSync(reportDir, { recursive: true });
 // 1) DXF fuente → DWG AC1015, con audit. Un dibujo sin DWG o con .err queda
 // documentado como rechazado y fuera del bundle; no arrastra al resto.
 const conversion = runConverter(odaExe, dxfDir, dwgDir, TARGET.parameter, "DWG", fail);
+// La red GLOBAL que la ola 1 sí tenía y este copy-paste perdió: un exit
+// distinto de cero es un fallo del conversor entero, no de un dibujo — sin
+// esta línea el pipeline seguía y podía firmar un lote a medias.
+if (conversion.exitCode !== 0) {
+  fail(`${TARGET.parameter}: el conversor salió con código ${conversion.exitCode}`);
+}
 const conversionErrors = collectErrorFiles(dwgDir);
 const errorByName = new Map(
-  conversionErrors.map((entry) => [entry.file.replace(/\.err$/i, ""), entry.content]),
+  conversionErrors.flatMap((entry) => {
+    const stem = entry.file.replace(/\.err$/i, "");
+    // Tres formas de clave: el conversor puede nombrar el .err por el archivo
+    // de SALIDA (x.dwg.err), por el de ENTRADA (x.dxf.err) o por el nombre a
+    // secas — con dos de tres, un .err del tercero admitía el dibujo igual.
+    return [
+      [stem, entry.content],
+      [stem.replace(/\.dwg$/i, ""), entry.content],
+      [stem.replace(/\.dxf$/i, ""), entry.content],
+    ];
+  }),
 );
 
 const rejectedConversion = [];
@@ -103,7 +120,7 @@ let admitted = sources;
   const survivors = [];
   for (const source of admitted) {
     const dwgFile = path.join(dwgDir, `${source.name}.dwg`);
-    const converterMessage = errorByName.get(`${source.name}.dwg`) ?? errorByName.get(source.name);
+    const converterMessage = errorByName.get(source.name);
     if (!fs.existsSync(dwgFile) || converterMessage !== undefined) {
       rejectedConversion.push({
         name: source.name,
@@ -139,19 +156,38 @@ if (admitted.length === 0) fail(`${TARGET.parameter}: la conversión rechazó lo
 // veredicto rejected excluye SOLO ese dibujo y queda documentado con sus
 // problemas exactos.
 const roundtrip = runConverter(odaExe, dwgDir, roundtripDir, "ACAD2000", "DXF", fail);
+if (roundtrip.exitCode !== 0) {
+  fail(`${TARGET.parameter}: el round-trip salió con código ${roundtrip.exitCode}`);
+}
 const roundtripErrors = collectErrorFiles(roundtripDir);
+const roundtripErrorByName = new Map(
+  roundtripErrors.flatMap((entry) => {
+    const stem = entry.file.replace(/\.err$/i, "");
+    return [
+      [stem, entry.content],
+      [stem.replace(/\.dwg$/i, ""), entry.content],
+      [stem.replace(/\.dxf$/i, ""), entry.content],
+    ];
+  }),
+);
 const comparisons = {};
 const rejectedRoundtrip = [];
 {
   const survivors = [];
   for (const source of admitted) {
     const roundtripFile = path.join(roundtripDir, `${source.name}.dxf`);
-    if (!fs.existsSync(roundtripFile)) {
+    const roundtripMessage = roundtripErrorByName.get(source.name);
+    if (!fs.existsSync(roundtripFile) || roundtripMessage !== undefined) {
       rejectedRoundtrip.push({
         name: source.name,
         stage: "dwg-to-dxf",
-        reason: "el round-trip no produjo el DXF",
+        reason: fs.existsSync(roundtripFile)
+          ? "el conversor dejó un .err junto al DXF del round-trip"
+          : "el round-trip no produjo el DXF",
         problemas: [],
+        ...(roundtripMessage === undefined
+          ? {}
+          : { converterMessage: roundtripMessage }),
       });
       continue;
     }
@@ -188,7 +224,9 @@ const conversionLog = {
   files: admittedFiles,
   rejected: rejectedConversion,
   documentedExclusions: DOCUMENTED_EXCLUSIONS,
-  result: "accepted",
+  // Calculado, no literal: una corrida con rechazos al lado de un
+  // "result": "accepted" era una evidencia que se contradecía a sí misma.
+  result: rejectedConversion.length === 0 ? "accepted" : "partial",
 };
 const roundtripReport = {
   $schema: "urn:valle-design:dwg-conformance:roundtrip-report:v1",
@@ -203,7 +241,7 @@ const roundtripReport = {
   errorFiles: roundtripErrors,
   comparisons,
   rejected: rejectedRoundtrip,
-  result: "accepted",
+  result: rejectedRoundtrip.length === 0 ? "accepted" : "partial",
 };
 
 const logFile = path.join(reportDir, "conversion-log.json");
