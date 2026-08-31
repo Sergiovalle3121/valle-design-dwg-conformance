@@ -46,6 +46,34 @@ Identificadores usados en `sourceFactIds` de los manifiestos:
   R12 de la herramienta reconoce el nombre MTEXT pero descarta sus grupos,
   por lo que esta ola exige el dialecto 2000 con esqueleto de tablas y
   handles.
+- `VALLE-CORPUS-ENTIDADES-OLA3-2026-08-31` — intake de la tercera ola: seis
+  dibujos escalonados 26–31 de autoría propia que cubren los dos huecos que
+  ninguna ola anterior toca. **3D**: POLYLINE 3D con Z distinto en cada
+  vértice, malla poligonal 7×9 y 5×5 cerrada en N, polyface de caja y
+  tetraedro con índices negativos de arista invisible, seis 3DFACE con todas
+  las combinaciones de bandera de arista más un triángulo degenerado, y
+  elevación/espesor/extrusión no trivial en CIRCLE y LWPOLYLINE. **Escala**:
+  un dibujo de 5070 entidades en cuatro capas, generado por retícula
+  determinista, que existe para ejercitar la paginación del mapa de objetos y
+  el presupuesto del lector — hasta hoy el archivo mayor del corpus eran
+  98 708 bytes y ningún dibujo pasaba de 1100 objetos. Generados por
+  `scripts/generate-entity-dxf-3.mjs` en dialecto DXF 2000 y convertidos SOLO
+  a ACAD2000 con la herramienta de este registro mediante
+  `scripts/build-entity-corpus-3.mjs`.
+
+  Límite que consta por escrito: el comparador estructural del pipeline cuenta
+  entidades por tipo, capas y nombres de bloque, y **no compara coordenadas**.
+  Para el 3D eso no basta —un aplanado a Z=0 conserva el conteo—, así que la
+  fidelidad del eje Z la falsa el códec contra el DXF oráculo que se congela
+  junto al DWG, no este pipeline. «Round-trip OK» en esta ola no significa «el
+  3D viajó bien».
+
+  Exclusiones documentadas de la ola: 3DSOLID, REGION, BODY y la familia
+  SURFACE quedan fuera porque todos llevan un flujo ACIS embebido y emitir SAT
+  válido a mano es un problema propio, con su propia procedencia que registrar
+  — ACIS es formato de Spatial/Dassault, no de ODA. MESH (subdivisión) es una
+  clase R2010+ y no existe en el dialecto AC1015 que produce este generador.
+
 - `VALLE-CORPUS-ENTIDADES-OLA2-2026-08-21` — intake de la segunda ola de
   entidades: diez dibujos escalonados 16–25 de autoría propia (LEADER con
   anotación y TOLERANCE, RAY/XLINE, SOLID/TRACE/3DFACE, DIMENSION
