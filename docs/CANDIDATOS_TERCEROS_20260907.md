@@ -163,14 +163,12 @@ verificaron y quedaron documentados con veredicto negativo en la §3, no en
 
 Al buscar alternativas a QCAD/LibreCAD/FreeCAD dentro de la familia 4, apareció
 `mozman/ezdxf` (`https://github.com/mozman/ezdxf`), una librería Python para
-DXF bajo licencia **MIT** — licencia que, a diferencia de GPL/LGPL, no está en
-la lista de "Material prohibido" de `CORPUS_POLICY.md`. No la evalué a fondo
-porque (a) el encargo nombró explícitamente sólo QCAD/LibreCAD/FreeCAD para
-esta familia, y (b) no alcancé a confirmar si sus archivos DXF de prueba están
-cubiertos por esa misma licencia MIT del repo o si provienen de terceros
-(archivos DXF de ejemplo de otros software, comunes en suites de prueba de
-lectores DXF). Queda como pista para una futura corrida, explícitamente NO
-como candidato de este expediente.
+DXF bajo licencia **MIT**. Esa licencia no habilita sus fixtures: la política
+prohíbe también los tests y fixtures de otros codecs, con independencia de
+su licencia. No se verificaron derechos particulares sobre sus archivos de
+prueba y no se descargaron ni inspeccionaron. Sus fixtures quedan excluidos
+por `CORPUS_POLICY.md`; esta referencia no recomienda incorporarlos ni
+autoriza una excepción.
 
 ---
 
@@ -184,14 +182,17 @@ como candidato de este expediente.
    acceso de red de este entorno de agente. Si quieres continuar esta línea,
    lo más eficiente es que tú (o un agente en un entorno sin este bloqueo de
    egress) visites directamente el candidato marcado ⭐ en la §4 — el dataset
-   de NIST PDR con DWG y DXF de un nanocalorímetro — porque es obra federal
-   (dominio público por 17 U.S.C. §105) y, a diferencia de todo lo demás que
-   encontré, su propio título de catálogo ya afirma contener ambos formatos
-   exactos que necesita el corpus.
+   de NIST PDR con DWG y DXF de un nanocalorímetro. Su título de catálogo
+   menciona ambos formatos, pero en esta corrida no se verificaron la autoría,
+   los derechos de los archivos ni la aplicabilidad de 17 U.S.C. §105. Que lo
+   aloje NIST no basta para declararlo de dominio público. Sólo procede una
+   revisión de metadata de derechos conforme a la política, fuera de Git y
+   sin descargar ni abrir los archivos; sigue sin haber material admitido.
 3. Si decides perseguir la familia 4 igual, la única vía compatible con la
-   política sería localizar un proyecto CAD de ejemplo bajo una licencia
-   permisiva (MIT/BSD/CC0) — ver la pista de `ezdxf` en la §5 — nunca GPL,
-   LGPL ni ningún otro término de la lista prohibida, sin importar que el
-   archivo en sí sea "sólo un ejemplo".
+   política exige verificar los derechos de cada dibujo y cumplir también
+   las restricciones de procedencia. Una licencia permisiva (MIT/BSD/CC0)
+   por sí sola no basta: los tests y fixtures de otros codecs, incluidos
+   los de `ezdxf` (§5), están excluidos. Tampoco se admiten GPL, LGPL ni
+   otros términos prohibidos, aunque el archivo sea "sólo un ejemplo".
 4. Nada de este documento modifica `bundles/` ni `index.json`; ambos quedan
    exactamente como estaban antes de esta corrida.
